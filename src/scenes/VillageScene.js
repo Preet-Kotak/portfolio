@@ -285,6 +285,7 @@ export default class VillageScene extends Phaser.Scene {
       building.setData('interactive', data.interactive);
       building.setData('gridPos', { x: data.gridX, y: data.gridY });
       building.setData('baseScale', scale);
+      building.setData('tileSize', { width: data.tileWidth, height: data.tileHeight });
       
       if (data.interactive) {
         building.setInteractive({ useHandCursor: true });
