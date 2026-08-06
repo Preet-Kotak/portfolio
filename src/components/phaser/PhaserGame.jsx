@@ -9,27 +9,41 @@ function PhaserGame() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Phaser game configuration
+    // CoC-style full-screen configuration
     const config = {
       type: Phaser.AUTO,
-      width: 800,
-      height: 600,
       parent: containerRef.current,
-      backgroundColor: '#2C2416',
+      backgroundColor: '#92C463', // CoC grass green
       scene: [VillageScene],
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE, // Full responsive like CoC
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 800,
-        height: 600
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      physics: {
+        default: 'arcade',
+        arcade: {
+          debug: false
+        }
       }
     };
 
     // Initialize Phaser game instance
     gameRef.current = new Phaser.Game(config);
 
+    // Handle window resize (like CoC)
+    const handleResize = () => {
+      if (gameRef.current) {
+        gameRef.current.scale.resize(window.innerWidth, window.innerHeight);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
     // Cleanup on unmount
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
@@ -38,9 +52,17 @@ function PhaserGame() {
   }, []);
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div ref={containerRef} />
-    </div>
+    <div 
+      ref={containerRef} 
+      className="w-full h-full"
+      style={{ 
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }}
+    />
   );
 }
 
