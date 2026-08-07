@@ -41,30 +41,37 @@ function Modal({ isOpen, onClose, children }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ease-in-out"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
       onClick={handleOverlayClick}
     >
       <div
-        className="relative bg-[#2C2416] rounded-lg shadow-2xl border-2 border-[#F5A623] 
-                   w-full max-w-2xl max-h-[90vh] overflow-y-auto
-                   transform transition-all duration-300 ease-in-out
-                   animate-fadeIn"
+        className="relative w-full max-w-lg mx-auto
+                   bg-[#2C2416] rounded-xl shadow-2xl
+                   border-2 border-[#F5A623]
+                   max-h-[80vh] overflow-y-auto
+                   outline outline-4 outline-[#8B4513]/60 outline-offset-2"
+        style={{
+          boxShadow: '0 0 0 2px #8B4513, 0 25px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,166,35,0.15)'
+        }}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-[#F5A623] hover:text-[#FFD700] 
-                     text-3xl font-bold transition-colors duration-200
-                     w-10 h-10 flex items-center justify-center
-                     hover:bg-[#3C3426] rounded-full"
+          className="absolute top-3 right-3 z-10
+                     w-8 h-8 flex items-center justify-center
+                     bg-[#8B4513] hover:bg-[#F5A623]
+                     text-[#F5A623] hover:text-[#2C2416]
+                     text-xl font-bold rounded-full
+                     border border-[#F5A623]/50
+                     transition-all duration-150 leading-none"
           aria-label="Close modal"
         >
-          ×
+          ✕
         </button>
 
         {/* Modal content */}
-        <div className="p-8 text-gray-100">
+        <div className="p-6 text-gray-100">
           {children}
         </div>
       </div>
