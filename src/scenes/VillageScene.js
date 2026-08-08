@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import buildings from '../data/buildings';
 
 export default class VillageScene extends Phaser.Scene {
   constructor() {
@@ -15,16 +16,23 @@ export default class VillageScene extends Phaser.Scene {
     this.load.image('background', 'assets/environment/background.png');
     
     // Load building sprites
-    this.load.image('townhall', 'assets/buildings/town-hall.png');
-    this.load.image('barracks', 'assets/buildings/barracks.png');
-    this.load.image('builderhut', 'assets/buildings/builder-hut.png');
-    this.load.image('laboratory', 'assets/buildings/laboratory.png');
-    this.load.image('goldmine', 'assets/buildings/gold-mine.png');
-    this.load.image('elixir', 'assets/buildings/elixir-collector.png');
-    this.load.image('cannon', 'assets/buildings/cannon.png');
-    this.load.image('archertower', 'assets/buildings/archer-tower.png');
-    this.load.image('armycamp', 'assets/buildings/army-camp.png');
-    this.load.image('wall', 'assets/buildings/wall-segment.png');
+    this.load.image('townhall',     'assets/buildings/town-hall.png');
+    this.load.image('barracks',     'assets/buildings/barracks.png');
+    this.load.image('builderhut',   'assets/buildings/builder-hut.png');
+    this.load.image('laboratory',   'assets/buildings/laboratory.png');
+    this.load.image('goldmine',     'assets/buildings/gold-mine.png');
+    this.load.image('elixir',       'assets/buildings/elixir-collector.png');
+    this.load.image('cannon',       'assets/buildings/cannon.png');
+    this.load.image('archertower',  'assets/buildings/archer-tower.png');
+    this.load.image('armycamp',     'assets/buildings/army-camp.png');
+    this.load.image('wall',         'assets/buildings/wall-segment.png');
+    this.load.image('clancastle',   'assets/buildings/clan-castle.png');
+    this.load.image('airdefense',   'assets/buildings/air-defense.png');
+    this.load.image('elixirstorage','assets/buildings/elixir-storage.png');
+    this.load.image('goldstorage',  'assets/buildings/gold-storage.png');
+    this.load.image('mortar',       'assets/buildings/mortar.png');
+    this.load.image('wizardtower',  'assets/buildings/wizard-tower.png');
+    this.load.image('lootcart',     'assets/buildings/loot-cart.png');
   }
 
   create() {
@@ -91,278 +99,150 @@ export default class VillageScene extends Phaser.Scene {
     // Center camera on the grid center
     this.cameras.main.centerOn(gridCenter.x, gridCenter.y);
     
-    // Set zoom level
-    this.cameras.main.setZoom(1.2);
-  }
-
-  createGrassBackgroundWithGrid(worldWidth, worldHeight) {
-    // Not needed anymore - using actual CoC background image
-  }
-
-  createGrassBorder(worldWidth, worldHeight) {
-    // Not needed anymore - border is in the background image
+    // Set initial zoom level
+    this._targetZoom = 1.2;
+    this.cameras.main.setZoom(this._targetZoom);
   }
 
   placeBuildings() {
-    // Use the calibrated grid info
     const { center, tileWidth, tileHeight } = this.gridInfo;
-    
-    // Helper function to convert grid coordinates to isometric screen position
-    const gridToIso = (gridX, gridY) => {
-      // Isometric conversion: 
-      // screenX = (gridX - gridY) * (tileWidth / 2)
-      // screenY = (gridX + gridY) * (tileHeight / 2)
+
+    // Convert TOP-LEFT tile corner + size to isometric screen CENTER of building
+    // In iso: moving +1 in gridX goes right-down, +1 in gridY goes left-down
+    // Center of an SxS building placed at (gx,gy) is at (gx + S/2, gy + S/2)
+    const tileCenter = (gx, gy, size) => {
+      const cx = gx + size / 2;
+      const cy = gy + size / 2;
       return {
-        x: center.x + (gridX - gridY) * (tileWidth / 2),
-        y: center.y + (gridX + gridY) * (tileHeight / 2)
+        x: center.x + (cx - cy) * (tileWidth  / 2),
+        y: center.y + (cx + cy) * (tileHeight / 2),
       };
     };
-    
-    // Building layout with ACTUAL CoC tile sizes
-    // Grid coordinates are relative to center (0,0)
-    const buildings = [
-      // Interactive buildings (main navigation)
-      { 
-        type: 'townhall', 
-        gridX: 0, 
-        gridY: 0, 
-        tileWidth: 4, // Town Hall is 4x4 tiles
-        tileHeight: 4,
-        scale: 1.4, // Custom scale multiplier
-        name: 'Town Hall', 
-        interactive: true 
-      },
-      { 
-        type: 'barracks', 
-        gridX: -8, 
-        gridY: 2, 
-        tileWidth: 3, // Barracks is 3x3 tiles
-        tileHeight: 3,
-        scale: 1.8, // Increased size for Barracks
-        name: 'Barracks', 
-        interactive: true 
-      },
-      { 
-        type: 'builderhut', 
-        gridX: 8, 
-        gridY: 2, 
-        tileWidth: 2, // Builder's Hut is 2x2 tiles
-        tileHeight: 2,
-        scale: 1.4,
-        name: "Builder's Hut", 
-        interactive: true 
-      },
-      { 
-        type: 'laboratory', 
-        gridX: -8, 
-        gridY: -5, 
-        tileWidth: 3, // Laboratory is 3x3 tiles
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Laboratory', 
-        interactive: true 
-      },
-      
-      // Decorative resource buildings (3x3 tiles each)
-      { 
-        type: 'goldmine', 
-        gridX: 10, 
-        gridY: -3, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Gold Mine', 
-        interactive: false 
-      },
-      { 
-        type: 'goldmine', 
-        gridX: 10, 
-        gridY: 5, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Gold Mine', 
-        interactive: false 
-      },
-      { 
-        type: 'elixir', 
-        gridX: -11, 
-        gridY: -3, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Elixir Collector', 
-        interactive: false 
-      },
-      { 
-        type: 'elixir', 
-        gridX: -11, 
-        gridY: 5, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Elixir Collector', 
-        interactive: false 
-      },
-      
-      // Defensive buildings (3x3 tiles each)
-      { 
-        type: 'cannon', 
-        gridX: -4, 
-        gridY: -10, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Cannon', 
-        interactive: false 
-      },
-      { 
-        type: 'cannon', 
-        gridX: 4, 
-        gridY: -10, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Cannon', 
-        interactive: false 
-      },
-      { 
-        type: 'archertower', 
-        gridX: -4, 
-        gridY: 11, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Archer Tower', 
-        interactive: false 
-      },
-      { 
-        type: 'archertower', 
-        gridX: 4, 
-        gridY: 11, 
-        tileWidth: 3,
-        tileHeight: 3,
-        scale: 1.4,
-        name: 'Archer Tower', 
-        interactive: false 
-      },
-      { 
-        type: 'armycamp', 
-        gridX: 0, 
-        gridY: 12, 
-        tileWidth: 5,
-        tileHeight: 5,
-        scale: 1.0, // Reduced size for Army Camp
-        name: 'Army Camp', 
-        interactive: false 
-      },
-    ];
-    
-    buildings.forEach((data) => {
-      // Convert grid position to isometric screen position
-      const pos = gridToIso(data.gridX, data.gridY);
-      
-      const building = this.add.image(pos.x, pos.y, data.type);
-      
-      // In isometric view, the visual size needs to account for both width and height
-      // A 3x3 building should span 3 tiles diagonally in both directions
-      // Target size in pixels for the building
-      const targetWidthPx = data.tileWidth * tileWidth * data.scale; // Use individual scale
-      const targetHeightPx = data.tileHeight * tileHeight * data.scale;
-      
-      // Scale sprite to fit tile dimensions
-      const scaleX = targetWidthPx / building.width;
-      const scaleY = targetHeightPx / building.height;
-      const scale = Math.min(scaleX, scaleY);
-      
-      building.setScale(scale);
-      building.setOrigin(0.5, 0.75); // Bottom-center for depth effect (adjusted anchor)
-      building.setDepth(pos.y); // Depth based on Y position
-      
-      // Store building data
-      building.setData('buildingType', data.type);
-      building.setData('buildingName', data.name);
-      building.setData('interactive', data.interactive);
-      building.setData('gridPos', { x: data.gridX, y: data.gridY });
-      building.setData('baseScale', scale);
-      building.setData('tileSize', { width: data.tileWidth, height: data.tileHeight });
-      
-      if (data.interactive) {
-        building.setInteractive({ useHandCursor: true });
-        
-        // Hover effects (CoC style)
-        building.on('pointerover', () => {
-          building.setTint(0xFFFFAA);
-          this.tweens.add({
-            targets: building,
-            scaleX: scale * 1.1,
-            scaleY: scale * 1.1,
-            duration: 150,
-            ease: 'Power2'
-          });
-        });
-        
-        building.on('pointerout', () => {
-          building.clearTint();
-          this.tweens.add({
-            targets: building,
-            scaleX: scale,
-            scaleY: scale,
-            duration: 150,
-            ease: 'Power2'
-          });
-        });
-        
-        building.on('pointerdown', () => {
-          this.onBuildingClick(building);
-        });
-      }
-      
-      this.buildings.push(building);
-    });
-    
-    // Place walls (1x1 tiles each)
-    this.placeWalls(gridToIso);
-  }
 
-  placeWalls(gridToIso) {
-    // Wall positions around village perimeter (1x1 tiles)
-    const wallPositions = [];
-    
-    // Top wall (diagonal line)
-    for (let i = -12; i <= 12; i++) {
-      wallPositions.push({ x: i, y: -14 });
-    }
-    
-    // Bottom wall (diagonal line)
-    for (let i = -12; i <= 12; i++) {
-      wallPositions.push({ x: i, y: 15 });
-    }
-    
-    // Left wall (diagonal line)
-    for (let i = -13; i <= 14; i++) {
-      wallPositions.push({ x: -14, y: i });
-    }
-    
-    // Right wall (diagonal line)
-    for (let i = -13; i <= 14; i++) {
-      wallPositions.push({ x: 14, y: i });
-    }
-    
-    const { tileWidth, tileHeight } = this.gridInfo;
-    
-    wallPositions.forEach(gridPos => {
-      const pos = gridToIso(gridPos.x, gridPos.y);
-      
-      const wall = this.add.image(pos.x, pos.y, 'wall');
-      
-      // Scale wall to 1 tile size (increased multiplier)
-      const scale = Math.min(tileWidth, tileHeight) / wall.width * 1.4; // Increased from 0.7 to 1.4
-      wall.setScale(scale);
-      wall.setOrigin(0.5, 0.7);
-      wall.setDepth(pos.y);
-      wall.setAlpha(0.9);
+    // Draw iso-diamond footprint as green placeholder
+    // Uses same center point and size as a real sprite would render
+    const drawPlaceholder = (gx, gy, size, depth) => {
+      const tw = tileWidth / 2;
+      const th = tileHeight / 2;
+
+      // Compute the 4 iso corners of the SxS footprint
+      const corner = (cx, cy) => ({
+        x: center.x + (cx - cy) * tw,
+        y: center.y + (cx + cy) * th,
+      });
+
+      const topPt    = corner(gx,        gy       );
+      const rightPt  = corner(gx + size, gy       );
+      const bottomPt = corner(gx + size, gy + size);
+      const leftPt   = corner(gx,        gy + size);
+
+      const g = this.add.graphics();
+      g.fillStyle(0x2ECC40, 0.45);
+      g.lineStyle(1.5, 0x27AE60, 0.9);
+      g.beginPath();
+      g.moveTo(topPt.x,    topPt.y);
+      g.lineTo(rightPt.x,  rightPt.y);
+      g.lineTo(bottomPt.x, bottomPt.y);
+      g.lineTo(leftPt.x,   leftPt.y);
+      g.closePath();
+      g.fillPath();
+      g.strokePath();
+      g.setDepth(depth);
+    };
+
+    const defs = buildings;
+
+    defs.forEach((d) => {
+      const pos   = tileCenter(d.gx, d.gy, d.size);
+      const depth = pos.y;
+
+      if (!d.type) {
+        // Green placeholder for buildings we don't have sprites for yet
+        drawPlaceholder(d.gx, d.gy, d.size, depth);
+        return;
+      }
+
+      const spr = this.add.image(pos.x, pos.y, d.type);
+
+      // Scale: fit the larger axis so sprite fills footprint, apply per-sprite multiplier
+      const fitW  = (d.size * tileWidth)  / spr.width;
+      const fitH  = (d.size * tileHeight) / spr.height;
+      const scale = Math.max(fitW, fitH) * (d.spriteScale ?? 1.0);
+
+      spr.setScale(scale);
+      spr.setOrigin(0.5, 0.5); // center anchor matches tileCenter calculation
+      spr.setDepth(depth);
+      spr.setData('buildingType', d.type);
+      spr.setData('buildingName', d.name);
+      spr.setData('interactive',  d.interactive);
+      spr.setData('modalKey',     d.modalKey ?? d.type);
+
+      if (d.interactive) {
+        spr.setInteractive({ useHandCursor: true });
+
+        spr.on('pointerover', () => {
+          spr.setTint(0xFFFFAA);
+          this.tweens.add({ targets: spr, scaleX: scale * 1.1, scaleY: scale * 1.1, duration: 150, ease: 'Power2' });
+        });
+        spr.on('pointerout', () => {
+          spr.clearTint();
+          this.tweens.add({ targets: spr, scaleX: scale, scaleY: scale, duration: 150, ease: 'Power2' });
+        });
+        spr.on('pointerdown', () => this.onBuildingClick(spr));
+      }
+
+      this.buildings.push(spr);
     });
+
+    // ── WALLS ─────────────────────────────────────────────────────
+    // Add wall lines below. Each call draws a straight line of walls.
+    // Usage: placeWallRow(gxStart, gxEnd, gy)  — horizontal iso line (constant gy)
+    //        placeWallCol(gx, gyStart, gyEnd)   — vertical iso line   (constant gx)
+
+    const placeWallRow = (gxStart, gxEnd, gy) => {
+      for (let gx = gxStart; gx <= gxEnd; gx++) {
+        const pos  = tileCenter(gx, gy, 1);
+        const wall = this.add.image(pos.x, pos.y, 'wall');
+        const sc   = Math.min(tileWidth, tileHeight) / wall.width * 1.4;
+        wall.setScale(sc);
+        wall.setOrigin(0.5, 0.5);
+        wall.setDepth(pos.y - 1);
+        wall.setAlpha(0.9);
+      }
+    };
+
+    const placeWallCol = (gx, gyStart, gyEnd) => {
+      for (let gy = gyStart; gy <= gyEnd; gy++) {
+        const pos  = tileCenter(gx, gy, 1);
+        const wall = this.add.image(pos.x, pos.y, 'wall');
+        const sc   = Math.min(tileWidth, tileHeight) / wall.width * 1.4;
+        wall.setScale(sc);
+        wall.setOrigin(0.5, 0.5);
+        wall.setDepth(pos.y - 1);
+        wall.setAlpha(0.9);
+      }
+    };
+
+    // ── ADD YOUR WALL LINES HERE ───────────────────────────────────
+    // Example — top edge of compartment 1:
+    // placeWallRow(-8, 5, -2);
+    // Example — left edge of compartment 1:
+    // placeWallCol(-8, -2, 3);
+    placeWallRow(-11, 5, 4);
+    placeWallRow(-11, 5, -1);
+    placeWallRow( -8, 5,  9);
+    placeWallRow( -8, 5, -6);
+    placeWallRow(-10, 1,-11);
+    placeWallRow(-10, 1, 13);
+
+    placeWallCol( 3, 0,  3);
+    placeWallCol(-11, 0, 3);
+    placeWallCol( 5,-6, -2);
+    placeWallCol( 5, 5,  9);
+    placeWallCol(-8,-6, -2);
+    placeWallCol(-8, 5,  9);
+    placeWallCol(10,-10, 14);
+
   }
 
   setupCameraControls() {
@@ -412,6 +292,7 @@ export default class VillageScene extends Phaser.Scene {
         2.5   // Max zoom
       );
       
+      this._targetZoom = newZoom;
       this.cameras.main.setZoom(newZoom);
     });
   }
@@ -419,24 +300,21 @@ export default class VillageScene extends Phaser.Scene {
   onBuildingClick(building) {
     const buildingType = building.getData('buildingType');
     const buildingName = building.getData('buildingName');
-    const tileSize = building.getData('tileSize');
-    
-    console.log(`Clicked: ${buildingName} (${buildingType}) - ${tileSize.width}x${tileSize.height} tiles`);
-    
-    // Get current scale for animation
+    const modalKey     = building.getData('modalKey');
+
+    console.log(`Clicked: ${buildingName} (${buildingType}) → modal: ${modalKey}`);
+
     const currentScale = building.scaleX;
-    
-    // Bounce animation
+
     this.tweens.add({
-      targets: building,
-      scaleX: currentScale * 1.15,
-      scaleY: currentScale * 1.15,
+      targets:  building,
+      scaleX:   currentScale * 1.15,
+      scaleY:   currentScale * 1.15,
       duration: 100,
-      yoyo: true,
-      ease: 'Power2',
+      yoyo:     true,
+      ease:     'Power2',
       onComplete: () => {
-        // Emit event to React (Phase 4)
-        this.game.events.emit('buildingClicked', buildingType);
+        this.game.events.emit('buildingClicked', modalKey);
       }
     });
   }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import PropTypes from 'prop-types';
 import Phaser from 'phaser';
 import VillageScene from '../../scenes/VillageScene';
@@ -17,8 +17,7 @@ function PhaserGame({ onBuildingClick }) {
       backgroundColor: '#92C463', // CoC grass green
       scene: [VillageScene],
       scale: {
-        mode: Phaser.Scale.RESIZE, // Full responsive like CoC
-        autoCenter: Phaser.Scale.CENTER_BOTH,
+        mode: Phaser.Scale.NONE, // Don't auto-resize — prevents zoom reset when modal opens
         width: window.innerWidth,
         height: window.innerHeight
       },
@@ -45,17 +44,29 @@ function PhaserGame({ onBuildingClick }) {
 
     gameRef.current.events.on('buildingClicked', handleBuildingClick);
 
-    // Handle window resize (like CoC)
+    // Handle true window resize (browser window dragged) — debounced to avoid
+    // modal-triggered layout shifts firing this. Only fires when dimensions actually change.
+    let lastW = window.innerWidth;
+    let lastH = window.innerHeight;
+    let resizeTimer = null;
     const handleResize = () => {
-      if (gameRef.current) {
-        gameRef.current.scale.resize(window.innerWidth, window.innerHeight);
-      }
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        if (gameRef.current && (w !== lastW || h !== lastH)) {
+          lastW = w;
+          lastH = h;
+          gameRef.current.scale.resize(w, h);
+        }
+      }, 150);
     };
 
     window.addEventListener('resize', handleResize);
 
     // Cleanup on unmount
     return () => {
+      clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       if (gameRef.current) {
         gameRef.current.events.off('buildingClicked', handleBuildingClick);
@@ -84,4 +95,4 @@ PhaserGame.propTypes = {
   onBuildingClick: PropTypes.func
 };
 
-export default PhaserGame;
+export default memo(PhaserGame);
