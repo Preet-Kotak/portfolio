@@ -1,38 +1,51 @@
 import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-// Shared color tokens — same palette used across all CoC modals
+// CoC UI color palette — warm grey/beige light theme matching in-game modals
 export const C = {
-  bg:            '#1A2340',
-  bgLight:       '#223060',
-  rim:           '#0A0F1E',
-  gold:          '#F0C040',
-  goldLight:     '#FFE480',
-  goldDark:      '#8B6800',
-  textGold:      '#F0C040',
-  textSilver:    '#B8C8E8',
-  textMuted:     '#6878A8',
+  // Modal surfaces
+  bg:            '#EDE8DC',   // main panel body — warm light grey
+  bgPanel:       '#D8D0C0',   // inset panel / section background
+  bgDark:        '#C8C0B0',   // darker inset / separator
+  rim:           '#8C7A5A',   // outer wooden rim
+  rimLight:      '#B8A070',   // highlight on rim
+  header:        '#F5F0E8',   // header bar background
+
+  // Text
+  text:          '#2C1A0E',   // primary text — dark brown
+  textSub:       '#5A4030',   // secondary text
+  textMuted:     '#8A7A6A',   // muted / placeholder text
+  textWhite:     '#FFFFFF',
+
+  // Accents
+  gold:          '#C88A00',   // gold accent (borders, active states)
+  goldLight:     '#E8B040',   // highlight gold
+  goldDark:      '#7A5200',   // shadow gold
+
+  // Buttons — green CoC style
+  btnGreen:      '#5AB820',   // green button mid
+  btnGreenHi:    '#80D830',   // green button top highlight
+  btnGreenShadow:'#2A6000',   // green button bottom shadow
+  btnGreenBorder:'#3A8010',   // green button border
+
+  // Buttons — gold CoC style (secondary)
   btnGold:       '#D49010',
   btnGoldHi:     '#F0C040',
   btnGoldShadow: '#6B4800',
+
+  // Close button
+  btnRed:        '#CC2222',
+  btnRedHi:      '#EE4444',
+  btnRedShadow:  '#880000',
+
+  // Status / misc
+  green:         '#3A9E20',
+  textGold:      '#8A6000',   // gold-toned text on light bg
+  textSilver:    '#6A6A7A',   // silver-toned text on light bg
 };
 
 /**
- * Base modal shell used by all CoC-themed modals.
- *
- * Provides:
- *  - Fixed overlay with click-outside-to-close
- *  - Escape key handler
- *  - Outer rim + gold rim + panel chrome
- *  - Gradient header bar with title and close button
- *  - Body wrapper (children rendered inside)
- *
- * Props:
- *  isOpen   — controls visibility
- *  onClose  — called when overlay, X button, or Escape is triggered
- *  title    — text shown in the header bar (uppercase)
- *  width    — optional CSS value for panel width (default: 'min(94vw, 440px)')
- *  children — modal body content
+ * Base modal shell — CoC light warm-grey theme.
  */
 function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children }) {
   useEffect(() => {
@@ -41,9 +54,6 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
-
-  // Intentionally not locking body scroll — the game canvas handles its own
-  // overflow and the modal is fixed-position, so no scroll lock is needed.
 
   if (!isOpen) return null;
 
@@ -58,77 +68,91 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
         alignItems:      'center',
         justifyContent:  'center',
         padding:         '16px',
-        backgroundColor: 'rgba(0,0,0,0.45)',
+        backgroundColor: 'rgba(0,0,0,0.55)',
       }}
     >
-      {/* outer rim */}
+      {/* wooden outer rim */}
       <div style={{
         width:        width,
-        borderRadius: '18px',
+        borderRadius: '14px',
         padding:      '3px',
-        background:   C.rim,
-        boxShadow:    '0 0 60px rgba(240,192,64,0.15), 0 32px 80px rgba(0,0,0,0.85)',
+        background:   `linear-gradient(180deg, ${C.rimLight} 0%, ${C.rim} 60%, #5A3E20 100%)`,
+        boxShadow:    '0 8px 40px rgba(0,0,0,0.7), 0 2px 0 rgba(255,255,255,0.15) inset',
       }}>
-        {/* gold rim */}
+        {/* inner light border */}
         <div style={{
-          borderRadius: '16px',
+          borderRadius: '12px',
           padding:      '2px',
-          background:   `linear-gradient(180deg, ${C.goldLight} 0%, ${C.goldDark} 100%)`,
+          background:   `linear-gradient(180deg, #E0D8C8 0%, #B0A890 100%)`,
         }}>
-          {/* panel */}
+          {/* panel body */}
           <div style={{
-            borderRadius: '14px',
+            borderRadius: '10px',
             overflow:     'hidden',
             background:   C.bg,
-            fontFamily:   'system-ui, -apple-system, sans-serif',
+            fontFamily:   '"Segoe UI", system-ui, -apple-system, sans-serif',
           }}>
 
             {/* header bar */}
             <div style={{
-              background:     `linear-gradient(180deg, #0E1628 0%, ${C.bgLight} 100%)`,
-              borderBottom:   `1px solid rgba(240,192,64,0.25)`,
-              padding:        '12px 16px 10px',
+              background:     C.header,
+              borderBottom:   `2px solid ${C.bgDark}`,
+              padding:        '10px 14px 10px',
               display:        'flex',
               alignItems:     'center',
               justifyContent: 'space-between',
+              gap:            '8px',
             }}>
+              {/* spacer to balance close button */}
+              <div style={{ width: '30px', flexShrink: 0 }} />
+
               <span style={{
-                color:         C.textGold,
-                fontSize:      '11px',
-                fontWeight:    800,
-                letterSpacing: '0.2em',
+                color:         C.text,
+                fontSize:      '13px',
+                fontWeight:    900,
+                letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 flex:          1,
                 textAlign:     'center',
               }}>
                 {title}
               </span>
+
+              {/* Red X close button — CoC style */}
               <button
                 onClick={onClose}
                 aria-label="Close"
                 style={{
-                  width:          '26px',
-                  height:         '26px',
-                  borderRadius:   '50%',
-                  border:         `1px solid ${C.textMuted}`,
-                  background:     'rgba(255,255,255,0.05)',
-                  color:          C.textSilver,
-                  fontSize:       '12px',
+                  width:          '30px',
+                  height:         '30px',
+                  borderRadius:   '8px',
+                  border:         `2px solid #AA1111`,
+                  background:     `linear-gradient(180deg, ${C.btnRedHi} 0%, ${C.btnRed} 55%, ${C.btnRedShadow} 100%)`,
+                  boxShadow:      `0 3px 0 #550000, 0 4px 8px rgba(0,0,0,0.4)`,
+                  color:          '#FFFFFF',
+                  fontSize:       '13px',
                   cursor:         'pointer',
                   display:        'flex',
                   alignItems:     'center',
                   justifyContent: 'center',
-                  fontWeight:     700,
+                  fontWeight:     900,
                   flexShrink:     0,
-                  transition:     'all 0.1s',
+                  transition:     'filter 0.1s',
+                  lineHeight:     1,
                 }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-                  e.currentTarget.style.color = '#fff';
-                }}
+                onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.15)'; }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                  e.currentTarget.style.color = C.textSilver;
+                  e.currentTarget.style.filter    = '';
+                  e.currentTarget.style.transform = '';
+                  e.currentTarget.style.boxShadow = `0 3px 0 #550000, 0 4px 8px rgba(0,0,0,0.4)`;
+                }}
+                onMouseDown={e => {
+                  e.currentTarget.style.transform  = 'translateY(3px)';
+                  e.currentTarget.style.boxShadow  = '0 0px 0 #550000';
+                }}
+                onMouseUp={e => {
+                  e.currentTarget.style.transform  = '';
+                  e.currentTarget.style.boxShadow  = `0 3px 0 #550000, 0 4px 8px rgba(0,0,0,0.4)`;
                 }}
               >
                 ✕

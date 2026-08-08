@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 
 /**
- * CV button — fixed below the Trophy button, top-left HUD.
- * Click opens the resume PDF lightbox.
+ * CV / Resume button — fixed below the Trophy button, top-left HUD.
+ * Uses the message.png image asset, square with rounded corners.
  */
 function CvButton({ onClick }) {
   return (
@@ -10,46 +10,44 @@ function CvButton({ onClick }) {
       onClick={onClick}
       title="View Resume"
       style={{
-        position:       'fixed',
-        top:            '72px',
-        left:           '16px',
-        zIndex:         40,
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '10px 14px',
-        borderRadius:   '12px',
-        cursor:         'pointer',
-        border:         '2px solid #C87A00',
-        background:     'linear-gradient(180deg, #FFD94A 0%, #E08800 55%, #B36300 100%)',
-        boxShadow:      '0 5px 0 #7A3E00, 0 8px 18px rgba(0,0,0,0.55)',
-        userSelect:     'none',
-        outline:        'none',
-        fontFamily:     'system-ui, -apple-system, sans-serif',
-        transition:     'filter 0.1s',
+        position:     'fixed',
+        top:          '90px',
+        left:         '16px',
+        zIndex:       40,
+        width:        '62px',
+        height:       '62px',
+        padding:      0,
+        border:       'none',
+        background:   'transparent',
+        cursor:       'pointer',
+        outline:      'none',
+        userSelect:   'none',
+        borderRadius: '14px',
+        overflow:     'hidden',
+        display:      'block',
+        boxShadow:    '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)',
+        transition:   'filter 0.1s, transform 0.1s, box-shadow 0.1s',
       }}
-      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.12)'; }}
+      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.15)'; }}
       onMouseLeave={e => {
         e.currentTarget.style.filter    = '';
         e.currentTarget.style.transform = '';
-        e.currentTarget.style.boxShadow = '0 5px 0 #7A3E00, 0 8px 18px rgba(0,0,0,0.55)';
+        e.currentTarget.style.boxShadow = '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)';
       }}
       onMouseDown={e => {
         e.currentTarget.style.transform  = 'translateY(4px)';
-        e.currentTarget.style.boxShadow  = '0 1px 0 #7A3E00, 0 2px 6px rgba(0,0,0,0.5)';
+        e.currentTarget.style.boxShadow  = '0 0px 0 rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.4)';
       }}
       onMouseUp={e => {
         e.currentTarget.style.transform  = '';
-        e.currentTarget.style.boxShadow  = '0 5px 0 #7A3E00, 0 8px 18px rgba(0,0,0,0.55)';
+        e.currentTarget.style.boxShadow  = '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)';
       }}
     >
-      <span style={{
-        fontSize:   '22px',
-        lineHeight: 1,
-        filter:     'drop-shadow(0 1px 2px rgba(0,0,0,0.45))',
-      }}>
-        📄
-      </span>
+      <img
+        src="/assets/message-sq.png"
+        alt="Resume"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: 'brightness(1.2) saturate(1.3) contrast(1.05)' }}
+      />
     </button>
   );
 }

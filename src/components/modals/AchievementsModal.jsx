@@ -2,65 +2,8 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Modal, { C } from './Modal';
 import ModalArrow from './ModalArrow';
+import PdfLightbox from './PdfLightbox';
 import achievements from '../../data/achievements';
-
-/* ── PDF Lightbox ───────────────────────────────────────────────────── */
-function PdfLightbox({ pdfPath, onClose }) {
-  return (
-    <div
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{
-        position:       'fixed',
-        inset:          0,
-        zIndex:         100,
-        background:     'rgba(0,0,0,0.85)',
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '20px',
-      }}
-    >
-      <button
-        onClick={onClose}
-        aria-label="Close certificate"
-        style={{
-          position:       'absolute',
-          top:            '16px',
-          right:          '20px',
-          background:     'rgba(255,255,255,0.1)',
-          border:         `1px solid ${C.textMuted}`,
-          borderRadius:   '50%',
-          width:          '34px',
-          height:         '34px',
-          color:          '#fff',
-          fontSize:       '14px',
-          cursor:         'pointer',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'center',
-          fontWeight:     700,
-        }}
-      >
-        ✕
-      </button>
-      <iframe
-        src={pdfPath}
-        title="Certificate"
-        style={{
-          width:        'min(90vw, 800px)',
-          height:       'min(85vh, 600px)',
-          border:       `2px solid ${C.goldDark}`,
-          borderRadius: '8px',
-          background:   '#fff',
-        }}
-      />
-      <div style={{ marginTop: '10px', fontSize: '11px', color: C.textMuted }}>
-        Click outside to close
-      </div>
-    </div>
-  );
-}
 
 /* ── Achievement card ───────────────────────────────────────────────── */
 function AchievementCard({ achievement, onViewCert }) {
@@ -70,8 +13,9 @@ function AchievementCard({ achievement, onViewCert }) {
     <div style={{
       borderRadius: '10px',
       padding:      '18px 16px',
-      background:   placeholder ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
-      border:       `1px solid ${placeholder ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.09)'}`,
+      background:   placeholder ? C.bg : C.header,
+      border:       `1px solid ${placeholder ? C.bgDark : C.bgDark}`,
+      boxShadow:    placeholder ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.7)',
       opacity:      placeholder ? 0.5 : 1,
       display:      'flex',
       gap:          '14px',
@@ -84,8 +28,8 @@ function AchievementCard({ achievement, onViewCert }) {
         width:          '48px',
         height:         '48px',
         borderRadius:   '50%',
-        background:     placeholder ? 'rgba(255,255,255,0.05)' : `${color}18`,
-        border:         `2px solid ${placeholder ? 'rgba(255,255,255,0.08)' : color + '55'}`,
+        background:     placeholder ? C.bgPanel : `${color}20`,
+        border:         `2px solid ${placeholder ? C.bgDark : color + '66'}`,
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
@@ -98,7 +42,7 @@ function AchievementCard({ achievement, onViewCert }) {
       {/* text */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: placeholder ? C.textMuted : '#FFFFFF' }}>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: placeholder ? C.textMuted : C.text }}>
             {title}
           </span>
           <span style={{
@@ -115,7 +59,7 @@ function AchievementCard({ achievement, onViewCert }) {
         <div style={{
           fontSize:     '11.5px',
           lineHeight:   '1.6',
-          color:        C.textSilver,
+          color:        C.textSub,
           marginBottom: (!placeholder && (href || certificate)) ? '12px' : 0,
         }}>
           {description}
@@ -130,21 +74,22 @@ function AchievementCard({ achievement, onViewCert }) {
                 rel="noopener noreferrer"
                 style={{
                   padding:        '4px 12px',
-                  borderRadius:   '6px',
+                  borderRadius:   '8px',
                   textDecoration: 'none',
                   fontSize:       '10px',
                   fontWeight:     800,
                   letterSpacing:  '0.06em',
                   textTransform:  'uppercase',
-                  background:     `linear-gradient(180deg, ${C.btnGoldHi} 0%, ${C.btnGold} 55%, #A06800 100%)`,
-                  border:         `1px solid ${C.goldLight}`,
-                  boxShadow:      `0 3px 0 ${C.btnGoldShadow}`,
-                  color:          '#1A0A00',
+                  background:     `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`,
+                  border:         `2px solid ${C.btnGreenBorder}`,
+                  boxShadow:      `0 3px 0 ${C.btnGreenShadow}`,
+                  color:          '#FFFFFF',
                   cursor:         'pointer',
                   minWidth:       '130px',
                   textAlign:      'center',
+                  textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.12)'; }}
+                onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; }}
                 onMouseLeave={e => { e.currentTarget.style.filter = ''; }}
               >
                 View Project
@@ -155,21 +100,22 @@ function AchievementCard({ achievement, onViewCert }) {
                 onClick={() => onViewCert(certificate.pdfPath)}
                 style={{
                   padding:        '4px 12px',
-                  borderRadius:   '6px',
+                  borderRadius:   '8px',
                   fontSize:       '10px',
                   fontWeight:     800,
                   letterSpacing:  '0.06em',
                   textTransform:  'uppercase',
-                  background:     'rgba(255,255,255,0.06)',
-                  border:         '1px solid rgba(184,200,232,0.2)',
-                  color:          C.textSilver,
+                  background:     C.bgPanel,
+                  border:         `2px solid ${C.bgDark}`,
+                  color:          C.textSub,
                   cursor:         'pointer',
                   transition:     'background 0.1s',
                   minWidth:       '130px',
                   textAlign:      'center',
+                  boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.5)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = C.bgDark; }}
+                onMouseLeave={e => { e.currentTarget.style.background = C.bgPanel; }}
               >
                 📄 View Certificate
               </button>
@@ -201,7 +147,7 @@ function AchievementsModal({ isOpen, onClose }) {
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} title="Laboratory — Achievements">
-        <div style={{ padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: '10px', background: C.bg }}>
 
           {/* arrows + card */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -234,7 +180,7 @@ function AchievementsModal({ isOpen, onClose }) {
       </Modal>
 
       {activePdf && (
-        <PdfLightbox pdfPath={activePdf} onClose={() => setActivePdf(null)} />
+        <PdfLightbox pdfPath={activePdf} title="Certificate" onClose={() => setActivePdf(null)} />
       )}
     </>
   );
@@ -242,6 +188,5 @@ function AchievementsModal({ isOpen, onClose }) {
 
 AchievementsModal.propTypes  = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
 AchievementCard.propTypes    = { achievement: PropTypes.object.isRequired, onViewCert: PropTypes.func.isRequired };
-PdfLightbox.propTypes        = { pdfPath: PropTypes.string.isRequired, onClose: PropTypes.func.isRequired };
 
 export default AchievementsModal;

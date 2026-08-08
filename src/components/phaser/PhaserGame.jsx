@@ -3,46 +3,52 @@ import PropTypes from 'prop-types';
 import Phaser from 'phaser';
 import VillageScene from '../../scenes/VillageScene';
 
+// Background image native dimensions
+const BG_W = 1200;
+const BG_H = 824;
+
 function PhaserGame({ onBuildingClick, modalOpen }) {
   const gameRef      = useRef(null);
   const containerRef = useRef(null);
+  // Store handler in ref so the Phaser init effect never needs to re-run on prop change
+  const onClickRef   = useRef(onBuildingClick);
+  useEffect(() => { onClickRef.current = onBuildingClick; }, [onBuildingClick]);
 
-  // ── Initialize Phaser once ─────────────────────────────────────────
+  // ── Initialize Phaser once ──────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const config = {
-      type:   Phaser.AUTO,
-      parent: containerRef.current,
+    const w = window.innerWidth;
+    const h = Math.round(w * BG_H / BG_W);
+    containerRef.current.style.height = `${h}px`;
+
+    gameRef.current = new Phaser.Game({
+      type:            Phaser.AUTO,
+      parent:          containerRef.current,
       backgroundColor: '#92C463',
-      scene:  [VillageScene],
+      scene:           [VillageScene],
       scale: {
         mode:   Phaser.Scale.NONE,
-        width:  window.innerWidth,
-        height: window.innerHeight,
+        width:  w,
+        height: h,
       },
-    };
+    });
 
-    gameRef.current = new Phaser.Game(config);
+    // Route Phaser events to the latest prop via ref — no effect re-run needed
+    gameRef.current.events.on('buildingClicked', (buildingType) => {
+      onClickRef.current?.(buildingType);
+    });
 
-    const handleBuildingClick = (buildingType) => {
-      if (onBuildingClick) onBuildingClick(buildingType);
-    };
-    gameRef.current.events.on('buildingClicked', handleBuildingClick);
-
-    // Debounced resize — only fires when browser window actually resizes
-    let lastW = window.innerWidth;
-    let lastH = window.innerHeight;
     let resizeTimer = null;
     const handleResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        if (gameRef.current && (w !== lastW || h !== lastH)) {
-          lastW = w; lastH = h;
-          gameRef.current.scale.resize(w, h);
-        }
+        if (!gameRef.current || !containerRef.current) return;
+        const nw = window.innerWidth;
+        const nh = Math.round(nw * BG_H / BG_W);
+        containerRef.current.style.height = `${nh}px`;
+        gameRef.current.scale.resize(nw, nh);
+        gameRef.current.events.emit('canvasResized', nw, nh);
       }, 150);
     };
     window.addEventListener('resize', handleResize);
@@ -50,26 +56,20 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
     return () => {
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
-      if (gameRef.current) {
-        gameRef.current.events.off('buildingClicked', handleBuildingClick);
-        gameRef.current.destroy(true);
-        gameRef.current = null;
-      }
+      gameRef.current?.destroy(true);
+      gameRef.current = null;
     };
-  }, [onBuildingClick]);
+  }, []); // no deps — safe because handler is accessed via ref
 
-  // ── Pause / resume Phaser input when a modal opens / closes ───────
+  // ── Pause / resume Phaser input when a modal opens / closes ────────
   useEffect(() => {
-    if (!gameRef.current) return;
-    // Emit to the scene so it can toggle its input manager
-    gameRef.current.events.emit('setModalOpen', modalOpen);
+    gameRef.current?.events.emit('setModalOpen', modalOpen);
   }, [modalOpen]);
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full"
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      style={{ position: 'relative', width: '100%' }}
     />
   );
 }

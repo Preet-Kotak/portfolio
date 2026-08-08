@@ -18,9 +18,9 @@ function StatusBadge({ status }) {
       fontWeight:    800,
       letterSpacing: '0.1em',
       textTransform: 'uppercase',
-      background:    isWip ? 'rgba(240,192,64,0.12)' : 'rgba(46,204,64,0.1)',
-      border:        `1px solid ${isWip ? 'rgba(240,192,64,0.3)' : 'rgba(46,204,64,0.25)'}`,
-      color:         isWip ? C.textGold : '#5EDB6A',
+      background:    isWip ? 'rgba(200,138,0,0.12)' : 'rgba(58,158,32,0.12)',
+      border:        `1px solid ${isWip ? 'rgba(200,138,0,0.4)' : 'rgba(58,158,32,0.4)'}`,
+      color:         isWip ? C.textGold : C.green,
       flexShrink:    0,
     }}>
       {isWip ? '⚙️ Upgrading' : '✅ Done'}
@@ -34,35 +34,37 @@ function TechTag({ name }) {
     <span style={{
       padding:      '2px 7px',
       borderRadius: '4px',
-      background:   'rgba(255,255,255,0.05)',
-      border:       '1px solid rgba(184,200,232,0.12)',
+      background:   C.bgPanel,
+      border:       `1px solid ${C.bgDark}`,
       fontSize:     '10px',
-      color:        C.textMuted,
+      color:        C.textSub,
+      fontWeight:   600,
     }}>
       {name}
     </span>
   );
 }
 
-/* ── Project image area ─────────────────────────────────────────────── */
+/* ── Project image ──────────────────────────────────────────────────── */
 function ProjectImage({ project }) {
   const [imgError, setImgError] = useState(false);
-  const clickUrl  = project.liveUrl ?? project.links[0]?.href ?? null;
-  const hasImage  = project.image && !imgError;
+  const clickUrl = project.liveUrl ?? project.links[0]?.href ?? null;
+  const hasImage = project.image && !imgError;
 
   return (
     <div
       onClick={() => clickUrl && window.open(clickUrl, '_blank', 'noopener,noreferrer')}
       style={{
-        height:     '140px',
-        overflow:   'hidden',
-        flexShrink: 0,
-        cursor:     clickUrl ? 'pointer' : 'default',
-        background: hasImage ? '#0D1526' : '#FFFFFF',
-        display:    'flex',
-        alignItems: 'center',
+        height:         '140px',
+        overflow:       'hidden',
+        flexShrink:     0,
+        cursor:         clickUrl ? 'pointer' : 'default',
+        background:     hasImage ? C.bgDark : C.bgPanel,
+        display:        'flex',
+        alignItems:     'center',
         justifyContent: 'center',
-        position:   'relative',
+        position:       'relative',
+        borderBottom:   `1px solid ${C.bgDark}`,
       }}
     >
       {hasImage ? (
@@ -71,13 +73,7 @@ function ProjectImage({ project }) {
             src={project.image}
             alt={project.title}
             onError={() => setImgError(true)}
-            style={{
-              width:      '100%',
-              height:     '100%',
-              objectFit:  'cover',
-              display:    'block',
-              transition: 'transform 0.2s ease',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }}
             onMouseEnter={e => { if (clickUrl) e.currentTarget.style.transform = 'scale(1.03)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
           />
@@ -86,13 +82,12 @@ function ProjectImage({ project }) {
               position:      'absolute',
               bottom:        '6px',
               right:         '8px',
-              background:    'rgba(0,0,0,0.65)',
+              background:    'rgba(0,0,0,0.55)',
               borderRadius:  '4px',
               padding:       '2px 7px',
               fontSize:      '9px',
               fontWeight:    700,
               color:         '#fff',
-              letterSpacing: '0.05em',
               pointerEvents: 'none',
             }}>
               🔗 Live Demo
@@ -100,14 +95,7 @@ function ProjectImage({ project }) {
           )}
         </>
       ) : (
-        /* white placeholder with project name */
-        <span style={{
-          fontSize:      '13px',
-          fontWeight:    700,
-          color:         '#999',
-          letterSpacing: '0.05em',
-          userSelect:    'none',
-        }}>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: C.textMuted, userSelect: 'none' }}>
           {project.title}
         </span>
       )}
@@ -115,18 +103,18 @@ function ProjectImage({ project }) {
   );
 }
 
-/* ── Project card (single page) ─────────────────────────────────────── */
+/* ── Project card ───────────────────────────────────────────────────── */
 function ProjectCard({ project }) {
   return (
     <div style={{
       borderRadius: '10px',
       overflow:     'hidden',
-      background:   'rgba(255,255,255,0.03)',
-      border:       '1px solid rgba(255,255,255,0.07)',
+      background:   C.header,
+      border:       `1px solid ${C.bgDark}`,
+      boxShadow:    'inset 0 1px 0 rgba(255,255,255,0.7)',
     }}>
       <ProjectImage project={project} />
 
-      {/* content */}
       <div style={{ padding: '12px 14px 14px' }}>
 
         {/* title + badge */}
@@ -137,14 +125,14 @@ function ProjectCard({ project }) {
           marginBottom:   '6px',
           justifyContent: 'space-between',
         }}>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: C.text, lineHeight: 1.2 }}>
             {project.title}
           </div>
           <StatusBadge status={project.status} />
         </div>
 
         {/* description */}
-        <div style={{ fontSize: '11.5px', lineHeight: '1.65', color: C.textSilver, marginBottom: '10px' }}>
+        <div style={{ fontSize: '11.5px', lineHeight: '1.65', color: C.textSub, marginBottom: '10px' }}>
           {project.description}
         </div>
 
@@ -163,23 +151,24 @@ function ProjectCard({ project }) {
               rel="noopener noreferrer"
               style={{
                 padding:        '5px 14px',
-                borderRadius:   '7px',
+                borderRadius:   '8px',
                 textDecoration: 'none',
                 fontSize:       '10px',
                 fontWeight:     800,
                 letterSpacing:  '0.06em',
                 textTransform:  'uppercase',
-                background:     `linear-gradient(180deg, ${C.btnGoldHi} 0%, ${C.btnGold} 55%, #A06800 100%)`,
-                border:         `1px solid ${C.goldLight}`,
-                boxShadow:      `0 3px 0 ${C.btnGoldShadow}`,
-                color:          '#1A0A00',
+                background:     `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`,
+                border:         `2px solid ${C.btnGreenBorder}`,
+                boxShadow:      `0 3px 0 ${C.btnGreenShadow}`,
+                color:          '#FFFFFF',
                 cursor:         'pointer',
                 transition:     'filter 0.1s',
+                textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.12)'; }}
-              onMouseLeave={e => { e.currentTarget.style.filter = ''; }}
-              onMouseDown={e => { e.currentTarget.style.transform = 'translateY(2px)'; e.currentTarget.style.boxShadow = `0 1px 0 ${C.btnGoldShadow}`; }}
-              onMouseUp={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = `0 3px 0 ${C.btnGoldShadow}`; }}
+              onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.filter = ''; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = `0 3px 0 ${C.btnGreenShadow}`; }}
+              onMouseDown={e => { e.currentTarget.style.transform = 'translateY(2px)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseUp={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = `0 3px 0 ${C.btnGreenShadow}`; }}
             >
               {link.label}
             </a>
@@ -191,20 +180,21 @@ function ProjectCard({ project }) {
               rel="noopener noreferrer"
               style={{
                 padding:        '5px 14px',
-                borderRadius:   '7px',
+                borderRadius:   '8px',
                 textDecoration: 'none',
                 fontSize:       '10px',
                 fontWeight:     800,
                 letterSpacing:  '0.06em',
                 textTransform:  'uppercase',
-                background:     'rgba(255,255,255,0.06)',
-                border:         '1px solid rgba(184,200,232,0.2)',
-                color:          C.textSilver,
+                background:     C.bgPanel,
+                border:         `2px solid ${C.bgDark}`,
+                color:          C.textSub,
                 cursor:         'pointer',
                 transition:     'background 0.1s',
+                boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.5)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = C.bgDark; }}
+              onMouseLeave={e => { e.currentTarget.style.background = C.bgPanel; }}
             >
               Live Demo
             </a>
@@ -218,10 +208,9 @@ function ProjectCard({ project }) {
 
 /* ── Main ────────────────────────────────────────────────────────────── */
 function ProjectsModal({ isOpen, onClose }) {
-  const [page, setPage]  = useState(0);
-  const total            = projects.length;
+  const [page, setPage] = useState(0);
+  const total           = projects.length;
 
-  // Arrow key navigation + block Phaser bleed-through
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => {
@@ -234,9 +223,8 @@ function ProjectsModal({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Builder's Hut — Projects" width="min(94vw, 480px)">
-      <div style={{ padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: '10px', background: C.bg }}>
 
-        {/* arrows + card */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <ModalArrow dir="left"  disabled={page === 0}         onClick={() => setPage(p => p - 1)} />
           <div style={{ flex: 1 }}>
@@ -245,7 +233,6 @@ function ProjectsModal({ isOpen, onClose }) {
           <ModalArrow dir="right" disabled={page === total - 1} onClick={() => setPage(p => p + 1)} />
         </div>
 
-        {/* dot indicators */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
           {projects.map((_, i) => (
             <div
@@ -255,7 +242,7 @@ function ProjectsModal({ isOpen, onClose }) {
                 width:        i === page ? '18px' : '6px',
                 height:       '6px',
                 borderRadius: '3px',
-                background:   i === page ? C.gold : C.textMuted,
+                background:   i === page ? C.gold : C.bgDark,
                 cursor:       'pointer',
                 transition:   'all 0.2s',
               }}
@@ -268,10 +255,10 @@ function ProjectsModal({ isOpen, onClose }) {
   );
 }
 
-ProjectsModal.propTypes  = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
-ProjectCard.propTypes    = { project: PropTypes.object.isRequired };
-ProjectImage.propTypes   = { project: PropTypes.object.isRequired };
-StatusBadge.propTypes    = { status: PropTypes.string.isRequired };
-TechTag.propTypes        = { name: PropTypes.string.isRequired };
+ProjectsModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
+ProjectCard.propTypes   = { project: PropTypes.object.isRequired };
+ProjectImage.propTypes  = { project: PropTypes.object.isRequired };
+StatusBadge.propTypes   = { status: PropTypes.string.isRequired };
+TechTag.propTypes       = { name: PropTypes.string.isRequired };
 
 export default ProjectsModal;

@@ -19,34 +19,35 @@ function SkillTile({ name, logo }) {
         justifyContent: 'center',
         width:          '72px',
         height:         '72px',
-        borderRadius:   '12px',
-        background:     '#FFFFFF',
-        border:         '2px solid rgba(255,255,255,0.15)',
+        borderRadius:   '10px',
+        background:     C.header,
+        border:         `2px solid ${C.bgDark}`,
         padding:        '8px',
         transition:     'border-color 0.15s, box-shadow 0.15s',
         cursor:         'default',
+        boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.6)',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = 'rgba(240,192,64,0.6)';
-        e.currentTarget.style.boxShadow   = '0 0 10px rgba(240,192,64,0.2)';
+        e.currentTarget.style.borderColor = C.gold;
+        e.currentTarget.style.boxShadow   = `0 0 8px rgba(200,138,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)`;
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
-        e.currentTarget.style.boxShadow   = 'none';
+        e.currentTarget.style.borderColor = C.bgDark;
+        e.currentTarget.style.boxShadow   = 'inset 0 1px 0 rgba(255,255,255,0.6)';
       }}
     >
       {showImg ? (
         <img
-          src={`assets/skills/${logo}`}
+          src={`/assets/skills/${logo}`}
           alt={name}
           onError={() => setImgFailed(true)}
           style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
         />
       ) : (
         <span style={{
-          fontSize:  '9.5px',
+          fontSize:   '9px',
           fontWeight: 700,
-          color:      '#333333',
+          color:      C.textSub,
           textAlign:  'center',
           lineHeight: '1.3',
           wordBreak:  'break-word',
@@ -64,7 +65,6 @@ function SkillsModal({ isOpen, onClose }) {
   const total   = skills.length;
   const current = skills[page];
 
-  // Arrow key navigation
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => {
@@ -77,26 +77,24 @@ function SkillsModal({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Barracks — Skills">
-      <div style={{ padding: '14px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ padding: '14px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px', background: C.bg }}>
 
-        {/* ── category tabs — fixed 2-per-row grid ── */}
-        <div style={{
-          display:               'grid',
-          gridTemplateColumns:   'repeat(2, 1fr)',
-          gap:                   '6px',
-        }}>
+        {/* category tabs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
           {skills.map((s, i) => (
             <button
               key={s.category}
               onClick={() => setPage(i)}
               style={{
-                padding:       '5px 8px',
-                borderRadius:  '6px',
-                border:        `1px solid ${i === page ? C.gold : 'rgba(255,255,255,0.1)'}`,
-                background:    i === page ? 'rgba(240,192,64,0.12)' : 'rgba(255,255,255,0.03)',
-                color:         i === page ? C.textGold : C.textMuted,
+                padding:       '6px 8px',
+                borderRadius:  '8px',
+                border:        `2px solid ${i === page ? C.gold : C.bgDark}`,
+                background:    i === page
+                  ? `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`
+                  : C.bgPanel,
+                color:         i === page ? '#FFFFFF' : C.textSub,
                 fontSize:      '10px',
-                fontWeight:    i === page ? 800 : 500,
+                fontWeight:    800,
                 cursor:        'pointer',
                 transition:    'all 0.15s',
                 letterSpacing: '0.04em',
@@ -104,6 +102,8 @@ function SkillsModal({ isOpen, onClose }) {
                 whiteSpace:    'nowrap',
                 overflow:      'hidden',
                 textOverflow:  'ellipsis',
+                boxShadow:     i === page ? `0 2px 0 ${C.btnGreenShadow}` : 'inset 0 1px 0 rgba(255,255,255,0.5)',
+                textShadow:    i === page ? '0 1px 2px rgba(0,0,0,0.4)' : 'none',
               }}
             >
               {s.icon} {s.category}
@@ -111,11 +111,18 @@ function SkillsModal({ isOpen, onClose }) {
           ))}
         </div>
 
-        {/* ── page content: arrows + logo grid — fixed height so modal never shakes ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-
+        {/* skill grid with arrows */}
+        <div style={{
+          background:   C.bgPanel,
+          borderRadius: '10px',
+          border:       `1px solid ${C.bgDark}`,
+          boxShadow:    'inset 0 2px 4px rgba(0,0,0,0.1)',
+          display:      'flex',
+          alignItems:   'center',
+          gap:          '4px',
+          padding:      '4px',
+        }}>
           <ModalArrow dir="left"  disabled={page === 0}         onClick={() => setPage(p => p - 1)} />
-          {/* logo grid — fixed height regardless of item count */}
           <div style={{
             flex:           1,
             display:        'flex',
@@ -132,10 +139,9 @@ function SkillsModal({ isOpen, onClose }) {
             ))}
           </div>
           <ModalArrow dir="right" disabled={page === total - 1} onClick={() => setPage(p => p + 1)} />
-
         </div>
 
-        {/* ── page indicator dots ── */}
+        {/* dot indicators */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
           {skills.map((_, i) => (
             <div
@@ -145,7 +151,7 @@ function SkillsModal({ isOpen, onClose }) {
                 width:        i === page ? '18px' : '6px',
                 height:       '6px',
                 borderRadius: '3px',
-                background:   i === page ? C.gold : C.textMuted,
+                background:   i === page ? C.gold : C.bgDark,
                 cursor:       'pointer',
                 transition:   'all 0.2s',
               }}

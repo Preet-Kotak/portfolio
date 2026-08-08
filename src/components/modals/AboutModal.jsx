@@ -9,17 +9,17 @@ function HexAvatar({ size = 80 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <div style={{
-        position:  'absolute',
-        inset:     0,
-        clipPath:  'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)',
+        position:   'absolute',
+        inset:      0,
+        clipPath:   'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)',
         background: `linear-gradient(180deg, ${C.goldLight} 0%, ${C.goldDark} 100%)`,
       }} />
       <div style={{
-        position:  'absolute',
-        inset:     '4px',
-        clipPath:  'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)',
-        overflow:  'hidden',
-        background: '#141C33',
+        position:   'absolute',
+        inset:      '4px',
+        clipPath:   'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)',
+        overflow:   'hidden',
+        background: C.bgPanel,
       }}>
         <img
           src={about.avatar}
@@ -36,28 +36,26 @@ function HexAvatar({ size = 80 }) {
   );
 }
 
-/* ── Bio card (single, full-width) ──────────────────────────────────── */
+/* ── Bio card ───────────────────────────────────────────────────────── */
 function BioCard({ title, lines }) {
   return (
     <div style={{
-      flex:                 1,
-      borderRadius:         '12px',
-      padding:              '16px 15px',
-      background:           'rgba(255,255,255,0.05)',
-      backdropFilter:       'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      border:               '1px solid rgba(255,255,255,0.1)',
-      boxShadow:            'inset 0 1px 0 rgba(255,255,255,0.08)',
-      minHeight:            '90px',
+      flex:         1,
+      borderRadius: '10px',
+      padding:      '14px 15px',
+      background:   C.bgPanel,
+      border:       `1px solid ${C.bgDark}`,
+      boxShadow:    'inset 0 2px 4px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5)',
+      minHeight:    '90px',
     }}>
       <div style={{
         fontSize:      '9px',
         fontWeight:    800,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
-        color:         C.gold,
+        color:         C.textGold,
         marginBottom:  '7px',
-        borderBottom:  '1px solid rgba(240,192,64,0.2)',
+        borderBottom:  `1px solid ${C.bgDark}`,
         paddingBottom: '5px',
       }}>
         {title}
@@ -66,7 +64,7 @@ function BioCard({ title, lines }) {
         <div key={i} style={{
           fontSize:     '11.5px',
           lineHeight:   '1.7',
-          color:        C.textSilver,
+          color:        C.textSub,
           marginBottom: i < lines.length - 1 ? '4px' : 0,
         }}>
           {line}
@@ -76,7 +74,7 @@ function BioCard({ title, lines }) {
   );
 }
 
-/* ── Gold action button ──────────────────────────────────────────────── */
+/* ── Green action button ─────────────────────────────────────────────── */
 function ActionBtn({ label, href, external }) {
   return (
     <a
@@ -89,32 +87,33 @@ function ActionBtn({ label, href, external }) {
         padding:        '8px 20px',
         borderRadius:   '10px',
         textDecoration: 'none',
-        background:     `linear-gradient(180deg, ${C.btnGoldHi} 0%, ${C.btnGold} 55%, #A06800 100%)`,
-        border:         `2px solid ${C.goldLight}`,
-        boxShadow:      `0 4px 0 ${C.btnGoldShadow}, 0 6px 12px rgba(0,0,0,0.4)`,
+        background:     `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`,
+        border:         `2px solid ${C.btnGreenBorder}`,
+        boxShadow:      `0 4px 0 ${C.btnGreenShadow}, 0 6px 12px rgba(0,0,0,0.25)`,
         fontSize:       '11px',
         fontWeight:     800,
-        color:          '#1A0A00',
+        color:          '#FFFFFF',
         letterSpacing:  '0.05em',
         cursor:         'pointer',
         userSelect:     'none',
         transition:     'all 0.08s',
         textTransform:  'uppercase',
         minWidth:       '100px',
+        textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
       }}
-      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.12)'; }}
+      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; }}
       onMouseLeave={e => {
-        e.currentTarget.style.filter = '';
+        e.currentTarget.style.filter    = '';
         e.currentTarget.style.transform = '';
-        e.currentTarget.style.boxShadow = `0 4px 0 ${C.btnGoldShadow}, 0 6px 12px rgba(0,0,0,0.4)`;
+        e.currentTarget.style.boxShadow = `0 4px 0 ${C.btnGreenShadow}, 0 6px 12px rgba(0,0,0,0.25)`;
       }}
       onMouseDown={e => {
         e.currentTarget.style.transform = 'translateY(3px)';
-        e.currentTarget.style.boxShadow = `0 1px 0 ${C.btnGoldShadow}`;
+        e.currentTarget.style.boxShadow = `0 1px 0 ${C.btnGreenShadow}`;
       }}
       onMouseUp={e => {
         e.currentTarget.style.transform = '';
-        e.currentTarget.style.boxShadow = `0 4px 0 ${C.btnGoldShadow}, 0 6px 12px rgba(0,0,0,0.4)`;
+        e.currentTarget.style.boxShadow = `0 4px 0 ${C.btnGreenShadow}, 0 6px 12px rgba(0,0,0,0.25)`;
       }}
     >
       {label}
@@ -128,7 +127,6 @@ function AboutModal({ isOpen, onClose }) {
   const cards = about.cards;
   const total  = cards.length;
 
-  // Arrow key navigation
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => {
@@ -141,7 +139,7 @@ function AboutModal({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Player Profile">
-      <div style={{ padding: '22px 18px 26px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ padding: '22px 18px 26px', display: 'flex', flexDirection: 'column', gap: '20px', background: C.bg }}>
 
         {/* avatar + name row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -150,7 +148,7 @@ function AboutModal({ isOpen, onClose }) {
             <div style={{
               fontSize:      'clamp(18px, 4vw, 22px)',
               fontWeight:    900,
-              color:         '#FFFFFF',
+              color:         C.text,
               letterSpacing: '0.02em',
               lineHeight:    1.1,
               marginBottom:  '6px',
@@ -160,16 +158,17 @@ function AboutModal({ isOpen, onClose }) {
             <div style={{
               display:       'inline-flex',
               alignItems:    'center',
-              background:    'rgba(240,192,64,0.12)',
-              border:        '1px solid rgba(240,192,64,0.3)',
-              borderRadius:  '4px',
-              padding:       '3px 8px',
+              background:    `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 100%)`,
+              border:        `1px solid ${C.btnGreenBorder}`,
+              borderRadius:  '6px',
+              padding:       '3px 10px',
               fontSize:      '10px',
-              fontWeight:    700,
-              color:         C.textGold,
+              fontWeight:    800,
+              color:         '#FFFFFF',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               marginBottom:  '6px',
+              textShadow:    '0 1px 2px rgba(0,0,0,0.4)',
             }}>
               {about.tagline}
             </div>
@@ -179,7 +178,7 @@ function AboutModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* bio card — paginated with arrows */}
+        {/* bio card — paginated */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <ModalArrow dir="left"  disabled={cardPage === 0}         onClick={() => setCardPage(p => p - 1)} />
           <BioCard {...cards[cardPage]} />
@@ -196,7 +195,7 @@ function AboutModal({ isOpen, onClose }) {
                 width:        i === cardPage ? '18px' : '6px',
                 height:       '6px',
                 borderRadius: '3px',
-                background:   i === cardPage ? C.gold : C.textMuted,
+                background:   i === cardPage ? C.gold : C.bgDark,
                 cursor:       'pointer',
                 transition:   'all 0.2s',
               }}
@@ -204,7 +203,7 @@ function AboutModal({ isOpen, onClose }) {
           ))}
         </div>
 
-        {/* buttons */}
+        {/* action buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
           {about.links.map((l) => (
             <ActionBtn key={l.label} label={l.label} href={l.href} external={l.external} />
@@ -216,9 +215,9 @@ function AboutModal({ isOpen, onClose }) {
   );
 }
 
-AboutModal.propTypes  = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
-HexAvatar.propTypes   = { size: PropTypes.number };
-BioCard.propTypes     = { title: PropTypes.string.isRequired, lines: PropTypes.arrayOf(PropTypes.string).isRequired };
-ActionBtn.propTypes   = { label: PropTypes.string.isRequired, href: PropTypes.string.isRequired, external: PropTypes.bool.isRequired };
+AboutModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
+HexAvatar.propTypes  = { size: PropTypes.number };
+BioCard.propTypes    = { title: PropTypes.string.isRequired, lines: PropTypes.arrayOf(PropTypes.string).isRequired };
+ActionBtn.propTypes  = { label: PropTypes.string.isRequired, href: PropTypes.string.isRequired, external: PropTypes.bool.isRequired };
 
 export default AboutModal;

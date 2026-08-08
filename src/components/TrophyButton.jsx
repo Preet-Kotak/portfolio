@@ -1,72 +1,90 @@
 import PropTypes from 'prop-types';
 
 /**
- * Trophy button — fixed top-left HUD element.
- * Shows 🏆 icon + Codeforces rating.
- * Click opens the Trophy Room modal.
+ * Trophy button — CoC-style HUD element, top-left.
+ * Square button using the trophy image, with a separate
+ * grey translucent pill to the right showing the CF rating.
  */
 function TrophyButton({ cfRating, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      title="Open Trophy Room"
-      style={{
-        position:       'fixed',
-        top:            '16px',
-        left:           '16px',
-        zIndex:         40,
-        display:        'flex',
-        alignItems:     'center',
-        gap:            '9px',
-        padding:        '10px 18px 10px 14px',
-        borderRadius:   '12px',
-        cursor:         'pointer',
-        border:         '2px solid #C87A00',
-        background:     'linear-gradient(180deg, #FFD94A 0%, #E08800 55%, #B36300 100%)',
-        boxShadow:      '0 5px 0 #7A3E00, 0 8px 18px rgba(0,0,0,0.55)',
-        userSelect:     'none',
-        transition:     'filter 0.1s',
-        outline:        'none',
-        fontFamily:     'system-ui, -apple-system, sans-serif',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.12)'; }}
-      onMouseLeave={e => {
-        e.currentTarget.style.filter    = '';
-        e.currentTarget.style.transform = '';
-        e.currentTarget.style.boxShadow = '0 5px 0 #7A3E00, 0 8px 18px rgba(0,0,0,0.55)';
-      }}
-      onMouseDown={e => {
-        e.currentTarget.style.transform  = 'translateY(4px)';
-        e.currentTarget.style.boxShadow  = '0 1px 0 #7A3E00, 0 2px 6px rgba(0,0,0,0.5)';
-      }}
-      onMouseUp={e => {
-        e.currentTarget.style.transform  = '';
-        e.currentTarget.style.boxShadow  = '0 5px 0 #7A3E00, 0 8px 18px rgba(0,0,0,0.55)';
-      }}
-    >
-      {/* Trophy icon */}
-      <span style={{
-        fontSize:   '22px',
-        lineHeight: 1,
-        filter:     'drop-shadow(0 1px 2px rgba(0,0,0,0.45))',
-      }}>
-        🏆
-      </span>
+    <div style={{
+      position:    'fixed',
+      top:         '16px',
+      left:        '16px',
+      zIndex:      40,
+      display:     'flex',
+      alignItems:  'center',
+      gap:         '0px',
+    }}>
+      {/* ── Square image button ── */}
+      <button
+        onClick={onClick}
+        title="Open Trophy Room"
+        style={{
+          width:        '62px',
+          height:       '62px',
+          padding:      0,
+          border:       'none',
+          background:   'transparent',
+          cursor:       'pointer',
+          outline:      'none',
+          userSelect:   'none',
+          borderRadius: '14px',
+          overflow:     'hidden',
+          display:      'block',
+          boxShadow:    '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)',
+          transition:   'filter 0.1s, transform 0.1s, box-shadow 0.1s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.15)'; }}
+        onMouseLeave={e => {
+          e.currentTarget.style.filter    = '';
+          e.currentTarget.style.transform = '';
+          e.currentTarget.style.boxShadow = '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)';
+        }}
+        onMouseDown={e => {
+          e.currentTarget.style.transform  = 'translateY(4px)';
+          e.currentTarget.style.boxShadow  = '0 0px 0 rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.4)';
+        }}
+        onMouseUp={e => {
+          e.currentTarget.style.transform  = '';
+          e.currentTarget.style.boxShadow  = '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)';
+        }}
+      >
+        <img
+          src="/assets/throphy-sq.png"
+          alt="Trophy"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: 'brightness(1.2) saturate(1.3) contrast(1.05)' }}
+        />
+      </button>
 
-      {/* Rating */}
-      <span style={{
-        fontSize:      '16px',
-        fontWeight:    900,
-        color:         '#1A0A00',
-        letterSpacing: '0.04em',
-        lineHeight:    1,
-        minWidth:      '32px',
-        textAlign:     'center',
-        textShadow:    '0 1px 0 rgba(255,255,255,0.35)',
+      {/* ── Dark translucent rating pill ── */}
+      <div style={{
+        background:     'rgba(20,20,20,0.72)',
+        backdropFilter: 'blur(4px)',
+        borderRadius:   '0 10px 10px 0',
+        padding:        '8px 16px',
+        minWidth:       '52px',
+        textAlign:      'center',
+        /* alternating white/black border — top & right white, bottom & left black */
+        borderTop:      '1.5px solid rgba(255,255,255,0.55)',
+        borderRight:    '1.5px solid rgba(255,255,255,0.55)',
+        borderBottom:   '1.5px solid rgba(0,0,0,0.8)',
+        borderLeft:     'none',
+        boxShadow:      '0 2px 8px rgba(0,0,0,0.5)',
       }}>
-        {cfRating === null ? '…' : cfRating === 'err' ? '—' : cfRating}
-      </span>
-    </button>
+        <span style={{
+          fontSize:      '18px',
+          fontWeight:    900,
+          color:         '#FFFFFF',
+          textShadow:    '0 1px 3px rgba(0,0,0,0.7)',
+          letterSpacing: '0.02em',
+          lineHeight:    1,
+          fontFamily:    'system-ui, -apple-system, sans-serif',
+        }}>
+          {cfRating === null ? '…' : cfRating === 'err' ? '—' : cfRating}
+        </span>
+      </div>
+    </div>
   );
 }
 

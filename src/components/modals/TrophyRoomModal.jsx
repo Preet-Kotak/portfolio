@@ -39,12 +39,12 @@ function StatRow({ label, value, color }) {
       justifyContent: 'space-between',
       alignItems:     'center',
       padding:        '9px 0',
-      borderBottom:   '1px solid rgba(255,255,255,0.05)',
+      borderBottom:   `1px solid ${C.bgDark}`,
     }}>
       <span style={{ fontSize: '12px', color: C.textMuted, letterSpacing: '0.04em' }}>
         {label}
       </span>
-      <span style={{ fontSize: '15px', fontWeight: 900, color: color ?? '#FFFFFF' }}>
+      <span style={{ fontSize: '15px', fontWeight: 900, color: color ?? C.text }}>
         {value ?? '—'}
       </span>
     </div>
@@ -55,7 +55,7 @@ function StatRow({ label, value, color }) {
 function PlatformCard({ platform, loading, error, children }) {
   const accent = platform.key === 'cf' ? '#4A90D9'
                : platform.key === 'lc' ? '#FFA116'
-               :                         '#AAAAAA';
+               :                         C.textSilver;
   const url    = platform.key === 'cf' ? CF_URL
                : platform.key === 'lc' ? LC_URL
                :                         GH_URL;
@@ -64,11 +64,12 @@ function PlatformCard({ platform, loading, error, children }) {
     <div style={{
       borderRadius: '12px',
       padding:      '18px 20px',
-      background:   'rgba(255,255,255,0.04)',
-      border:       `1px solid ${accent}44`,
+      background:   C.header,
+      border:       `1px solid ${C.bgDark}`,
       position:     'relative',
       overflow:     'hidden',
       minHeight:    '180px',
+      boxShadow:    'inset 0 1px 0 rgba(255,255,255,0.7)',
     }}>
       {/* top accent strip */}
       <div style={{
@@ -107,19 +108,21 @@ function PlatformCard({ platform, loading, error, children }) {
           rel="noopener noreferrer"
           style={{
             padding:        '4px 12px',
-            borderRadius:   '6px',
+            borderRadius:   '8px',
             textDecoration: 'none',
             fontSize:       '10px',
             fontWeight:     800,
             letterSpacing:  '0.06em',
             textTransform:  'uppercase',
-            background:     `${accent}18`,
-            border:         `1px solid ${accent}55`,
-            color:          accent,
-            transition:     'background 0.1s',
+            background:     `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`,
+            border:         `2px solid ${C.btnGreenBorder}`,
+            boxShadow:      `0 2px 0 ${C.btnGreenShadow}`,
+            color:          '#FFFFFF',
+            transition:     'filter 0.1s',
+            textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = `${accent}30`; }}
-          onMouseLeave={e => { e.currentTarget.style.background = `${accent}18`; }}
+          onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.filter = ''; }}
         >
           Visit ↗
         </a>
@@ -139,7 +142,7 @@ function PlatformCard({ platform, loading, error, children }) {
       ) : error ? (
         <div style={{
           fontSize:  '12px',
-          color:     '#FF6B6B',
+          color:     '#CC2222',
           textAlign: 'center',
           padding:   '24px 0',
         }}>
@@ -182,7 +185,7 @@ function LeetCodeBody({ data }) {
 function GitHubBody({ data }) {
   return (
     <>
-      <StatRow label="Total Commits"  value={data.totalCommits} color="#FFFFFF" />
+      <StatRow label="Total Commits"  value={data.totalCommits} color={C.text} />
       <StatRow label="Public Repos"   value={data.public_repos} />
       <StatRow label="Followers"      value={data.followers}    />
       <StatRow label="Following"      value={data.following}    />
@@ -222,12 +225,17 @@ function TrophyRoomModal({ isOpen, onClose }) {
       .catch(() => setErrors(e => ({ ...e, cf: true })))
       .finally(() => setLoads(l => ({ ...l, cf: false })));
 
-    // LeetCode
-    fetch(`https://alfa-leetcode-api.onrender.com/${LC_USERNAME}/solved`)
+    // LeetCode — use /userProfile/ which returns solved counts reliably
+    fetch(`https://alfa-leetcode-api.onrender.com/userProfile/${LC_USERNAME}`)
       .then(r => r.json())
       .then(json => {
-        if (json.solvedProblem !== undefined) {
-          setStats(s => ({ ...s, lc: json }));
+        if (json.totalSolved !== undefined) {
+          setStats(s => ({ ...s, lc: {
+            solvedProblem: json.totalSolved,
+            easySolved:    json.easySolved,
+            mediumSolved:  json.mediumSolved,
+            hardSolved:    json.hardSolved,
+          }}));
         } else {
           setErrors(e => ({ ...e, lc: true }));
         }
@@ -276,7 +284,7 @@ function TrophyRoomModal({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="🏆 Trophy Room" width="min(94vw, 460px)">
-      <div style={{ padding: '16px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ padding: '16px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px', background: C.bg }}>
 
         {/* refresh */}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -285,17 +293,18 @@ function TrophyRoomModal({ isOpen, onClose }) {
             style={{
               padding:       '3px 10px',
               borderRadius:  '6px',
-              border:        `1px solid ${C.textMuted}`,
-              background:    'rgba(255,255,255,0.04)',
-              color:         C.textMuted,
+              border:        `2px solid ${C.bgDark}`,
+              background:    C.bgPanel,
+              color:         C.textSub,
               fontSize:      '10px',
               fontWeight:    700,
               cursor:        'pointer',
               letterSpacing: '0.04em',
               transition:    'all 0.1s',
+              boxShadow:     'inset 0 1px 0 rgba(255,255,255,0.5)',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.borderColor = C.textMuted; }}
+            onMouseEnter={e => { e.currentTarget.style.background = C.bgDark; }}
+            onMouseLeave={e => { e.currentTarget.style.background = C.bgPanel; }}
           >
             ↻ Refresh
           </button>
@@ -318,7 +327,6 @@ function TrophyRoomModal({ isOpen, onClose }) {
           <ModalArrow dir="right" disabled={page === PLATFORMS.length - 1} onClick={() => setPage(p => p + 1)} />
         </div>
 
-        {/* footnote */}
         <div style={{ fontSize: '9px', color: C.textMuted, textAlign: 'center' }}>
           Live stats · CF &amp; GitHub official APIs · LeetCode via community proxy
         </div>
