@@ -5,10 +5,6 @@ export default class VillageScene extends Phaser.Scene {
   constructor() {
     super({ key: 'VillageScene' });
     this.buildings = [];
-    // CoC specifications from official sources
-    this.TILE_SIZE = 32; // Each tile in pixels
-    this.VILLAGE_TILES = 44; // 44x44 playable village
-    this.BORDER_TILES = 3; // 3-tile grass border
   }
 
   preload() {
@@ -36,6 +32,19 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   create() {
+    // Track whether a modal is open — disables Phaser input while true
+    this._modalOpen = false;
+    this.game.events.on('setModalOpen', (isOpen) => {
+      this._modalOpen = isOpen;
+      // Disable/enable keyboard so arrow keys don't scroll the village
+      if (isOpen) {
+        this.input.keyboard.enabled = false;
+        this.input.enabled          = false;
+      } else {
+        this.input.keyboard.enabled = true;
+        this.input.enabled          = true;
+      }
+    });
     // Load the actual CoC background image
     const background = this.add.image(0, 0, 'background');
     background.setOrigin(0, 0);
@@ -72,15 +81,6 @@ export default class VillageScene extends Phaser.Scene {
     // In isometric view: diagonal width = 44 tiles, diagonal height = 44 tiles
     const isometricTileWidth = gridWidthPx / 44;  // ~17.9px per tile horizontally
     const isometricTileHeight = gridHeightPx / 44; // ~13.5px per tile vertically
-    
-    console.log('Grid calibration:', {
-      center: gridCenter,
-      gridWidthPx,
-      gridHeightPx,
-      isometricTileWidth,
-      isometricTileHeight,
-      backgroundSize: { width: bgWidth, height: bgHeight }
-    });
     
     // Store grid info for building placement
     this.gridInfo = {
@@ -284,7 +284,7 @@ export default class VillageScene extends Phaser.Scene {
     });
     
     // Mouse wheel zoom
-    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+    this.input.on('wheel', (_pointer, _gameObjects, _deltaX, deltaY, _deltaZ) => {
       const zoomAmount = deltaY > 0 ? -0.1 : 0.1;
       const newZoom = Phaser.Math.Clamp(
         this.cameras.main.zoom + zoomAmount,
@@ -298,12 +298,7 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   onBuildingClick(building) {
-    const buildingType = building.getData('buildingType');
-    const buildingName = building.getData('buildingName');
     const modalKey     = building.getData('modalKey');
-
-    console.log(`Clicked: ${buildingName} (${buildingType}) → modal: ${modalKey}`);
-
     const currentScale = building.scaleX;
 
     this.tweens.add({

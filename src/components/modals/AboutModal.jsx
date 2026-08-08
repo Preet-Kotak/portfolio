@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Modal, { C } from './Modal';
+import ModalArrow from './ModalArrow';
+import about from '../../data/about';
 
 /* ── Hex avatar ─────────────────────────────────────────────────────── */
 function HexAvatar({ size = 80 }) {
@@ -19,8 +22,8 @@ function HexAvatar({ size = 80 }) {
         background: '#141C33',
       }}>
         <img
-          src="assets/profile.jpg"
-          alt="Preet"
+          src={about.avatar}
+          alt={about.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           onError={(e) => {
             e.target.style.display = 'none';
@@ -33,13 +36,11 @@ function HexAvatar({ size = 80 }) {
   );
 }
 
-/* ── Glassmorphism bio card ──────────────────────────────────────────── */
+/* ── Bio card (single, full-width) ──────────────────────────────────── */
 function BioCard({ title, lines }) {
   return (
     <div style={{
-      minWidth:             'min(58vw, 170px)',
-      flexShrink:           0,
-      scrollSnapAlign:      'start',
+      flex:                 1,
       borderRadius:         '12px',
       padding:              '16px 15px',
       background:           'rgba(255,255,255,0.05)',
@@ -47,6 +48,7 @@ function BioCard({ title, lines }) {
       WebkitBackdropFilter: 'blur(12px)',
       border:               '1px solid rgba(255,255,255,0.1)',
       boxShadow:            'inset 0 1px 0 rgba(255,255,255,0.08)',
+      minHeight:            '90px',
     }}>
       <div style={{
         fontSize:      '9px',
@@ -121,41 +123,22 @@ function ActionBtn({ label, href, external }) {
 }
 
 /* ── Main ────────────────────────────────────────────────────────────── */
-const cards = [
-  {
-    title: 'About',
-    lines: [
-      'B.Tech CSE @ SVNIT Surat (CGPA 7.95)',
-      'Full-stack developer & competitive programmer.',
-      'Passionate about clean architecture and low-level systems.',
-    ],
-  },
-  {
-    title: 'Stack',
-    lines: [
-      'C/C++, JavaScript, Python, 8086 Assembly',
-      'React, Node.js, Express, Tailwind, discord.py',
-      'MongoDB, PostgreSQL, Redis, Supabase',
-    ],
-  },
-  {
-    title: 'Building',
-    lines: [
-      'Real-time auction platform (BidKar)',
-      'CoC tournament Discord bot (5k+ lines)',
-      '8086 Assembly calculator with custom math engine',
-    ],
-  },
-  {
-    title: 'Goals',
-    lines: [
-      'Ship projects people actually use',
-      'Land a strong internship — open to opportunities',
-    ],
-  },
-];
-
 function AboutModal({ isOpen, onClose }) {
+  const [cardPage, setCardPage] = useState(0);
+  const cards = about.cards;
+  const total  = cards.length;
+
+  // Arrow key navigation
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft')  setCardPage(p => Math.max(0, p - 1));
+      if (e.key === 'ArrowRight') setCardPage(p => Math.min(total - 1, p + 1));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, total]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Player Profile">
       <div style={{ padding: '22px 18px 26px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -172,7 +155,7 @@ function AboutModal({ isOpen, onClose }) {
               lineHeight:    1.1,
               marginBottom:  '6px',
             }}>
-              Preetkumar Kotak
+              {about.name}
             </div>
             <div style={{
               display:       'inline-flex',
@@ -188,32 +171,44 @@ function AboutModal({ isOpen, onClose }) {
               textTransform: 'uppercase',
               marginBottom:  '6px',
             }}>
-              Build · Break · Fix · Repeat
+              {about.tagline}
             </div>
             <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: '1.5' }}>
-              preetdkotak@gmail.com
+              {about.email}
             </div>
           </div>
         </div>
 
-        {/* bio cards — horizontal scroll, no visible scrollbar */}
-        <div style={{
-          display:                 'flex',
-          gap:                     '8px',
-          overflowX:               'auto',
-          scrollSnapType:          'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth:          'none',
-          msOverflowStyle:         'none',
-          paddingBottom:           '2px',
-        }}>
-          {cards.map((c) => <BioCard key={c.title} {...c} />)}
+        {/* bio card — paginated with arrows */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <ModalArrow dir="left"  disabled={cardPage === 0}         onClick={() => setCardPage(p => p - 1)} />
+          <BioCard {...cards[cardPage]} />
+          <ModalArrow dir="right" disabled={cardPage === total - 1} onClick={() => setCardPage(p => p + 1)} />
+        </div>
+
+        {/* dot indicators */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '-8px' }}>
+          {cards.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setCardPage(i)}
+              style={{
+                width:        i === cardPage ? '18px' : '6px',
+                height:       '6px',
+                borderRadius: '3px',
+                background:   i === cardPage ? C.gold : C.textMuted,
+                cursor:       'pointer',
+                transition:   'all 0.2s',
+              }}
+            />
+          ))}
         </div>
 
         {/* buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-          <ActionBtn label="LinkedIn" href="https://www.linkedin.com/in/preet-kotak-8538b033a" external />
-          <ActionBtn label="GitHub"   href="https://github.com/Preet-Kotak"                   external />
+          {about.links.map((l) => (
+            <ActionBtn key={l.label} label={l.label} href={l.href} external={l.external} />
+          ))}
         </div>
 
       </div>
@@ -221,9 +216,9 @@ function AboutModal({ isOpen, onClose }) {
   );
 }
 
-AboutModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
-HexAvatar.propTypes  = { size: PropTypes.number };
-BioCard.propTypes    = { title: PropTypes.string.isRequired, lines: PropTypes.arrayOf(PropTypes.string).isRequired };
-ActionBtn.propTypes  = { label: PropTypes.string.isRequired, href: PropTypes.string.isRequired, external: PropTypes.bool.isRequired };
+AboutModal.propTypes  = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
+HexAvatar.propTypes   = { size: PropTypes.number };
+BioCard.propTypes     = { title: PropTypes.string.isRequired, lines: PropTypes.arrayOf(PropTypes.string).isRequired };
+ActionBtn.propTypes   = { label: PropTypes.string.isRequired, href: PropTypes.string.isRequired, external: PropTypes.bool.isRequired };
 
 export default AboutModal;
