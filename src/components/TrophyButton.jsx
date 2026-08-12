@@ -9,8 +9,8 @@ function TrophyButton({ cfRating, onClick }) {
   return (
     <div style={{
       position:    'fixed',
-      top:         '16px',
-      left:        '16px',
+      top:         '10px',
+      left:        '10px',
       zIndex:      40,
       display:     'flex',
       alignItems:  'center',
@@ -20,18 +20,18 @@ function TrophyButton({ cfRating, onClick }) {
       <button
         onClick={onClick}
         title="Open Trophy Room"
+        className="hud-btn"
         style={{
-          width:        '62px',
-          height:       '62px',
           padding:      0,
           border:       'none',
           background:   'transparent',
           cursor:       'pointer',
           outline:      'none',
           userSelect:   'none',
-          borderRadius: '14px',
+          borderRadius: '10px',
           overflow:     'hidden',
           display:      'block',
+          flexShrink:   0,
           boxShadow:    '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)',
           transition:   'filter 0.1s, transform 0.1s, box-shadow 0.1s',
         }}
@@ -62,8 +62,8 @@ function TrophyButton({ cfRating, onClick }) {
         background:     'rgba(20,20,20,0.72)',
         backdropFilter: 'blur(4px)',
         borderRadius:   '0 10px 10px 0',
-        padding:        '8px 16px',
-        minWidth:       '52px',
+        padding:        '6px 10px',
+        minWidth:       '40px',
         textAlign:      'center',
         /* alternating white/black border — top & right white, bottom & left black */
         borderTop:      '1.5px solid rgba(255,255,255,0.55)',
@@ -73,7 +73,7 @@ function TrophyButton({ cfRating, onClick }) {
         boxShadow:      '0 2px 8px rgba(0,0,0,0.5)',
       }}>
         <span style={{
-          fontSize:      '18px',
+          fontSize:      '14px',
           fontWeight:    900,
           color:         '#FFFFFF',
           textShadow:    '0 1px 3px rgba(0,0,0,0.7)',

@@ -3,22 +3,23 @@ import PropTypes from 'prop-types';
 import Phaser from 'phaser';
 import VillageScene from '../../scenes/VillageScene';
 
-// Background image native dimensions
 const BG_W = 1200;
 const BG_H = 824;
+
+function getViewportWidth() {
+  return document.documentElement.clientWidth || window.innerWidth;
+}
 
 function PhaserGame({ onBuildingClick, modalOpen }) {
   const gameRef      = useRef(null);
   const containerRef = useRef(null);
-  // Store handler in ref so the Phaser init effect never needs to re-run on prop change
   const onClickRef   = useRef(onBuildingClick);
   useEffect(() => { onClickRef.current = onBuildingClick; }, [onBuildingClick]);
 
-  // ── Initialize Phaser once ──────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const w = window.innerWidth;
+    const w = getViewportWidth();
     const h = Math.round(w * BG_H / BG_W);
     containerRef.current.style.height = `${h}px`;
 
@@ -28,13 +29,26 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
       backgroundColor: '#92C463',
       scene:           [VillageScene],
       scale: {
-        mode:   Phaser.Scale.NONE,
-        width:  w,
-        height: h,
+        mode:       Phaser.Scale.NONE,
+        width:      w,
+        height:     h,
+        autoCenter: Phaser.Scale.NO_CENTER,
+      },
+      input: {
+        touch: { capture: false },
+      },
+      render: {
+        antialias:       true,
+        roundPixels:     false,
+        powerPreference: 'low-power',
+        resolution:      Math.min(window.devicePixelRatio || 1, 2),
+      },
+      fps: {
+        target:     60,
+        smoothStep: true,
       },
     });
 
-    // Route Phaser events to the latest prop via ref — no effect re-run needed
     gameRef.current.events.on('buildingClicked', (buildingType) => {
       onClickRef.current?.(buildingType);
     });
@@ -44,7 +58,7 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         if (!gameRef.current || !containerRef.current) return;
-        const nw = window.innerWidth;
+        const nw = getViewportWidth();
         const nh = Math.round(nw * BG_H / BG_W);
         containerRef.current.style.height = `${nh}px`;
         gameRef.current.scale.resize(nw, nh);
@@ -52,16 +66,17 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
       }, 150);
     };
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
 
     return () => {
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       gameRef.current?.destroy(true);
       gameRef.current = null;
     };
-  }, []); // no deps — safe because handler is accessed via ref
+  }, []);
 
-  // ── Pause / resume Phaser input when a modal opens / closes ────────
   useEffect(() => {
     gameRef.current?.events.emit('setModalOpen', modalOpen);
   }, [modalOpen]);
@@ -69,7 +84,7 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
   return (
     <div
       ref={containerRef}
-      style={{ position: 'relative', width: '100%' }}
+      style={{ position: 'relative', width: '100%', overflow: 'hidden' }}
     />
   );
 }

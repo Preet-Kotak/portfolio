@@ -9,20 +9,19 @@ function CvButton({ onClick }) {
     <button
       onClick={onClick}
       title="View Resume"
+      className="hud-btn hud-cv-top"
       style={{
         position:     'fixed',
-        top:          '90px',
-        left:         '16px',
+        top:          '50px',   /* fallback — overridden by .hud-cv-top */
+        left:         '10px',
         zIndex:       40,
-        width:        '62px',
-        height:       '62px',
         padding:      0,
         border:       'none',
         background:   'transparent',
         cursor:       'pointer',
         outline:      'none',
         userSelect:   'none',
-        borderRadius: '14px',
+        borderRadius: '10px',
         overflow:     'hidden',
         display:      'block',
         boxShadow:    '0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.45)',

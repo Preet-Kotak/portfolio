@@ -30,7 +30,8 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   create() {
-    this._modalOpen = false;
+    this._modalOpen  = false;
+    this._isMobile   = window.innerWidth < 1024;
 
     this.game.events.on('setModalOpen', (isOpen) => {
       this._modalOpen = isOpen;
@@ -39,9 +40,11 @@ export default class VillageScene extends Phaser.Scene {
     });
 
     this.game.events.on('canvasResized', () => {
-      this._minZoom = 1.0;
+      this._isMobile = window.innerWidth < 1024;
+      this._minZoom  = this._isMobile ? 0.9 : 1.0;
       if (this.cameras.main.zoom < this._minZoom) {
-        this.cameras.main.setZoom(this._minZoom);
+        // Use 0.9999 offset to avoid Phaser's HiDPI clipping bug
+        this.cameras.main.setZoom(this._minZoom + 0.0001);
       }
       const { corners } = this.gridInfo;
       const fx = (corners.left.x + corners.right.x) / 2;
@@ -51,12 +54,18 @@ export default class VillageScene extends Phaser.Scene {
 
     // Background — scaled to fill canvas width exactly
     const background = this.add.image(0, 0, 'background');
+    background.setName('bg');
     background.setOrigin(0, 0);
 
     const canvasW = this.scale.width;
     const canvasH = this.scale.height;
-    const scaleX  = canvasW / background.width;
-    background.setScale(scaleX);
+    // Scale background to fill canvas width.
+    // Grid corners are calibrated against the original 1200×824 image,
+    // so normalise scaleX against 1200 regardless of actual image width.
+    const ORIGINAL_BG_W = 1200;
+    const scaleX  = canvasW / ORIGINAL_BG_W;
+    const bgScale = canvasW / background.width;   // actual scale for the image
+    background.setScale(bgScale);
     background.setDepth(-1000);
 
     // Camera bounds = full canvas (browser handles vertical scroll)
@@ -90,8 +99,10 @@ export default class VillageScene extends Phaser.Scene {
     this.setupCameraControls();
 
     // Initial view: zoomed in with buildings in focus (focal point 68% down the grid)
-    this._minZoom = 1.0;
-    this.cameras.main.setZoom(1.4);
+    this._minZoom = this._isMobile ? 0.9 : 1.0;
+    // 0.9999 instead of exact 1.0 — prevents Phaser's top-left clipping bug
+    // that occurs when render.resolution > 1 (retina/HiDPI screens)
+    this.cameras.main.setZoom(this._isMobile ? 1.0999 : 1.3999);
     const focalY = gridCorners.top.y + (gridCorners.bottom.y - gridCorners.top.y) * 0.68;
     this.cameras.main.centerOn(gridCenter.x, focalY);
   }
@@ -163,35 +174,49 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   setupCameraControls() {
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.wasd    = this.input.keyboard.addKeys({
-      up:    Phaser.Input.Keyboard.KeyCodes.W,
-      down:  Phaser.Input.Keyboard.KeyCodes.S,
-      left:  Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D,
-    });
+    // Keyboard controls — desktop only (saves event overhead on mobile)
+    if (!this._isMobile) {
+      this.cursors = this.input.keyboard.createCursorKeys();
+      this.wasd    = this.input.keyboard.addKeys({
+        up:    Phaser.Input.Keyboard.KeyCodes.W,
+        down:  Phaser.Input.Keyboard.KeyCodes.S,
+        left:  Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+      });
+    }
 
-    let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
+    let isDragging  = false;
+    let dragStartX  = 0;
+    let dragStartY  = 0;
+    const DEAD_ZONE = 2;
 
     this.input.on('pointerdown', (pointer) => {
+      // For touch: only track first finger (id 1). For mouse: id is 0, always allow.
+      if (pointer.id > 1) return;
       isDragging = true;
       dragStartX = pointer.x;
       dragStartY = pointer.y;
     });
 
     this.input.on('pointermove', (pointer) => {
-      if (!isDragging) return;
+      if (!isDragging || pointer.id > 1) return;
+      const dx = pointer.x - dragStartX;
+      const dy = pointer.y - dragStartY;
+      if (Math.abs(dx) < DEAD_ZONE && Math.abs(dy) < DEAD_ZONE) return;
       const zoom = this.cameras.main.zoom;
-      this.cameras.main.scrollX -= (pointer.x - dragStartX) / zoom;
-      this.cameras.main.scrollY -= (pointer.y - dragStartY) / zoom;
+      this.cameras.main.scrollX -= dx / zoom;
+      this.cameras.main.scrollY -= dy / zoom;
       dragStartX = pointer.x;
       dragStartY = pointer.y;
     });
 
-    this.input.on('pointerup', () => { isDragging = false; });
+    this.input.on('pointerup', (pointer) => {
+      if (pointer.id <= 1) isDragging = false;
+    });
 
+    this.input.on('pointercancel', () => { isDragging = false; });
+
+    // Mouse wheel zoom — desktop
     this.input.on('wheel', (_pointer, _objects, _dx, deltaY) => {
       const newZoom = Phaser.Math.Clamp(
         this.cameras.main.zoom + (deltaY > 0 ? -0.1 : 0.1),
@@ -221,6 +246,9 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   update() {
+    // Keyboard pan — desktop only
+    if (this._isMobile || !this.cursors) return;
+
     const cam   = this.cameras.main;
     const speed = 12 / cam.zoom;
 

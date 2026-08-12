@@ -6,10 +6,42 @@ body {
   margin: 0;
   padding: 0;
   font-family: system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 #root {
   width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+}
+
+/* Force Phaser canvas to never overflow the viewport */
+canvas {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+}
+
+/* HUD button sizing — responsive */
+.hud-btn {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+@media (min-width: 1024px) {
+  .hud-btn {
+    width: 52px !important;
+    height: 52px !important;
+  }
+}
+
+/* CvButton top offset — must match trophy btn size + gap */
+.hud-cv-top {
+  top: 50px !important;  /* 10px + 32px + 8px gap */
+}
+
+@media (min-width: 1024px) {
+  .hud-cv-top {
+    top: 74px !important;  /* 10px + 52px + 12px gap */
+  }
 }

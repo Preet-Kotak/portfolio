@@ -91,6 +91,9 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
             overflow:     'hidden',
             background:   C.bg,
             fontFamily:   '"Segoe UI", system-ui, -apple-system, sans-serif',
+            maxHeight:    'calc(100dvh - 48px)',
+            display:      'flex',
+            flexDirection:'column',
           }}>
 
             {/* header bar */}
@@ -102,6 +105,7 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
               alignItems:     'center',
               justifyContent: 'space-between',
               gap:            '8px',
+              flexShrink:     0,
             }}>
               {/* spacer to balance close button */}
               <div style={{ width: '30px', flexShrink: 0 }} />
@@ -159,8 +163,10 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
               </button>
             </div>
 
-            {/* body */}
-            {children}
+            {/* body — scrollable on small screens */}
+            <div style={{ overflowY: 'auto', flex: 1, WebkitOverflowScrolling: 'touch' }}>
+              {children}
+            </div>
 
           </div>
         </div>
