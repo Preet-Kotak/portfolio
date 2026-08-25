@@ -33,46 +33,72 @@ export default class VillageScene extends Phaser.Scene {
     this._modalOpen  = false;
     this._isMobile   = window.innerWidth < 1024;
 
+    // Read CSS (logical) dimensions stored by PhaserGame.jsx.
+    // this.scale.width is now the physical pixel size (= cssW * dpr),
+    // so we use registry values for all layout work to stay in CSS-pixel space.
+    this._dpr = this.game.registry.get('dpr') ?? 1;
+    const cssW = this.game.registry.get('cssWidth')  ?? this.scale.width  / this._dpr;
+    const cssH = this.game.registry.get('cssHeight') ?? this.scale.height / this._dpr;
+
     this.game.events.on('setModalOpen', (isOpen) => {
       this._modalOpen = isOpen;
       this.input.keyboard.enabled = !isOpen;
       this.input.enabled          = !isOpen;
     });
 
-    this.game.events.on('canvasResized', () => {
+    this.game.events.on('canvasResized', (nCssW, nCssH) => {
       this._isMobile = window.innerWidth < 1024;
       this._minZoom  = this._isMobile ? 0.9 : 1.0;
       if (this.cameras.main.zoom < this._minZoom) {
-        // Use 0.9999 offset to avoid Phaser's HiDPI clipping bug
         this.cameras.main.setZoom(this._minZoom + 0.0001);
       }
+      this._rebuildGrid(nCssW, nCssH);
       const { corners } = this.gridInfo;
       const fx = (corners.left.x + corners.right.x) / 2;
       const fy = corners.top.y + (corners.bottom.y - corners.top.y) * 0.68;
+      this.cameras.main.setBounds(0, 0, nCssW * this._dpr, nCssH * this._dpr);
       this.cameras.main.centerOn(fx, fy);
     });
 
     // Background — scaled to fill canvas width exactly
-    const background = this.add.image(0, 0, 'background');
-    background.setName('bg');
-    background.setOrigin(0, 0);
+    this._bg = this.add.image(0, 0, 'background');
+    this._bg.setName('bg');
+    this._bg.setOrigin(0, 0);
+    this._bg.setDepth(-1000);
 
-    const canvasW = this.scale.width;
-    const canvasH = this.scale.height;
-    // Scale background to fill canvas width.
-    // Grid corners are calibrated against the original 1200×824 image,
-    // so normalise scaleX against 1200 regardless of actual image width.
+    // Build grid using CSS dimensions (layout coordinates)
+    this._rebuildGrid(cssW, cssH);
+
+    // Camera bounds in physical pixels (Phaser world space)
+    this.cameras.main.setBounds(0, 0, cssW * this._dpr, cssH * this._dpr);
+
+    this.placeBuildings();
+    this.setupCameraControls();
+
+    // Initial view: zoomed in with buildings in focus (focal point 68% down the grid)
+    this._minZoom = this._isMobile ? 0.9 : 1.0;
+    this.cameras.main.setZoom(this._isMobile ? 1.0999 : 1.3999);
+    const { corners } = this.gridInfo;
+    const focalY = corners.top.y + (corners.bottom.y - corners.top.y) * 0.68;
+    this.cameras.main.centerOn(this.gridInfo.center.x, focalY);
+  }
+
+  _rebuildGrid(cssW, cssH) {
+    const dpr = this._dpr;
+    // All world coordinates are in physical pixels (Phaser's coordinate space).
+    // We scale the CSS-pixel corner values by dpr to land in world space.
     const ORIGINAL_BG_W = 1200;
-    const scaleX  = canvasW / ORIGINAL_BG_W;
-    const bgScale = canvasW / background.width;   // actual scale for the image
-    background.setScale(bgScale);
-    background.setDepth(-1000);
+    const physW = cssW * dpr;
 
-    // Camera bounds = full canvas (browser handles vertical scroll)
-    this.cameras.main.setBounds(0, 0, canvasW, canvasH);
+    // Background scale: fit physical canvas width
+    if (this._bg) {
+      const bgScale = physW / this._bg.width;
+      this._bg.setScale(bgScale);
+    }
 
-    // Grid corners calibrated for 1200px-wide image, scaled to actual canvas
-    const s = scaleX;
+    // scaleX maps the 1200px-calibrated grid corners → physical pixels
+    const s = physW / ORIGINAL_BG_W;
+
     const gridCorners = {
       top:    { x: 613  * s, y:  84 * s },
       right:  { x: 1008 * s, y: 380 * s },
@@ -94,17 +120,6 @@ export default class VillageScene extends Phaser.Scene {
       tileHeight: gridHeightPx / 44,
       corners:    gridCorners,
     };
-
-    this.placeBuildings();
-    this.setupCameraControls();
-
-    // Initial view: zoomed in with buildings in focus (focal point 68% down the grid)
-    this._minZoom = this._isMobile ? 0.9 : 1.0;
-    // 0.9999 instead of exact 1.0 — prevents Phaser's top-left clipping bug
-    // that occurs when render.resolution > 1 (retina/HiDPI screens)
-    this.cameras.main.setZoom(this._isMobile ? 1.0999 : 1.3999);
-    const focalY = gridCorners.top.y + (gridCorners.bottom.y - gridCorners.top.y) * 0.68;
-    this.cameras.main.centerOn(gridCenter.x, focalY);
   }
 
   placeBuildings() {

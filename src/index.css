@@ -15,10 +15,9 @@ body {
   overflow-x: hidden;
 }
 
-/* Force Phaser canvas to never overflow the viewport */
+/* Force Phaser canvas to fill its container correctly */
 canvas {
   display: block !important;
-  width: 100% !important;
   max-width: 100vw !important;
 }
 
