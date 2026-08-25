@@ -30,13 +30,10 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   create() {
-    this._modalOpen  = false;
-    this._isMobile   = window.innerWidth < 1024;
+    this._modalOpen = false;
+    this._isMobile  = window.innerWidth < 1024;
+    this._dpr       = this.game.registry.get('dpr') ?? 1;
 
-    // Read CSS (logical) dimensions stored by PhaserGame.jsx.
-    // this.scale.width is now the physical pixel size (= cssW * dpr),
-    // so we use registry values for all layout work to stay in CSS-pixel space.
-    this._dpr = this.game.registry.get('dpr') ?? 1;
     const cssW = this.game.registry.get('cssWidth')  ?? this.scale.width  / this._dpr;
     const cssH = this.game.registry.get('cssHeight') ?? this.scale.height / this._dpr;
 
@@ -48,56 +45,65 @@ export default class VillageScene extends Phaser.Scene {
 
     this.game.events.on('canvasResized', (nCssW, nCssH) => {
       this._isMobile = window.innerWidth < 1024;
-      this._minZoom  = this._isMobile ? 0.9 : 1.0;
-      if (this.cameras.main.zoom < this._minZoom) {
-        this.cameras.main.setZoom(this._minZoom + 0.0001);
-      }
       this._rebuildGrid(nCssW, nCssH);
-      const { corners } = this.gridInfo;
-      const fx = (corners.left.x + corners.right.x) / 2;
-      const fy = corners.top.y + (corners.bottom.y - corners.top.y) * 0.68;
-      this.cameras.main.setBounds(0, 0, nCssW * this._dpr, nCssH * this._dpr);
-      this.cameras.main.centerOn(fx, fy);
+      this._resetCamera(nCssW, nCssH, false);
     });
 
-    // Background — scaled to fill canvas width exactly
     this._bg = this.add.image(0, 0, 'background');
-    this._bg.setName('bg');
     this._bg.setOrigin(0, 0);
     this._bg.setDepth(-1000);
 
-    // Build grid using CSS dimensions (layout coordinates)
     this._rebuildGrid(cssW, cssH);
-
-    // Camera bounds in physical pixels (Phaser world space)
-    this.cameras.main.setBounds(0, 0, cssW * this._dpr, cssH * this._dpr);
+    this._resetCamera(cssW, cssH, true);
 
     this.placeBuildings();
     this.setupCameraControls();
+  }
 
-    // Initial view: zoomed in with buildings in focus (focal point 68% down the grid)
-    this._minZoom = this._isMobile ? 0.9 : 1.0;
-    this.cameras.main.setZoom(this._isMobile ? 1.0999 : 1.3999);
+  _resetCamera(cssW, cssH, isInit) {
+    const dpr   = this._dpr;
+    const physW = cssW * dpr;
+    const physH = cssH * dpr;
+
+    // Fit bg to canvas width. bg aspect == canvas aspect so bg fills exactly at zoom=1.
+    const bgScale  = physW / this._bg.width;
+    this._bg.setScale(bgScale);
+    this._bg.setPosition(0, 0);
+    const bgWorldW = physW;
+    const bgWorldH = this._bg.height * bgScale; // ≈ physH
+
+    // At zoom z: viewport = physW/z × physH/z.
+    // No green requires: physW/z ≤ bgWorldW AND physH/z ≤ bgWorldH
+    // Since bgWorldW=physW and bgWorldH≈physH, minZoom ≈ 1.0.
+    // Add 0.002 epsilon for floating point — ensures no green at edges.
+    this._minZoom = Math.max(physW / bgWorldW, physH / bgWorldH) + 0.002;
+
+    if (isInit) {
+      // Mobile: use minZoom exactly — never go below it
+      // Desktop: zoom in to 1.5 for scroll range
+      const initZoom = this._isMobile
+        ? this._minZoom * 1.35   // 35% more zoomed in on mobile — bigger buildings
+        : 1.5;
+      this.cameras.main.setZoom(initZoom);
+    } else {
+      if (this.cameras.main.zoom < this._minZoom) {
+        this.cameras.main.setZoom(this._minZoom);
+      }
+    }
+
+    // Bounds AFTER zoom is set, so Phaser calculates scroll limits correctly
+    this.cameras.main.setBounds(0, 0, bgWorldW, bgWorldH);
+
     const { corners } = this.gridInfo;
-    const focalY = corners.top.y + (corners.bottom.y - corners.top.y) * 0.68;
-    this.cameras.main.centerOn(this.gridInfo.center.x, focalY);
+    const fx = this.gridInfo.center.x;
+    const fy = corners.top.y + (corners.bottom.y - corners.top.y) * 0.72;
+    this.cameras.main.centerOn(fx, fy);
   }
 
   _rebuildGrid(cssW, cssH) {
-    const dpr = this._dpr;
-    // All world coordinates are in physical pixels (Phaser's coordinate space).
-    // We scale the CSS-pixel corner values by dpr to land in world space.
-    const ORIGINAL_BG_W = 1200;
-    const physW = cssW * dpr;
-
-    // Background scale: fit physical canvas width
-    if (this._bg) {
-      const bgScale = physW / this._bg.width;
-      this._bg.setScale(bgScale);
-    }
-
-    // scaleX maps the 1200px-calibrated grid corners → physical pixels
-    const s = physW / ORIGINAL_BG_W;
+    void cssH;
+    const physW = cssW * this._dpr;
+    const s     = physW / 1200;
 
     const gridCorners = {
       top:    { x: 613  * s, y:  84 * s },
@@ -111,13 +117,10 @@ export default class VillageScene extends Phaser.Scene {
       y: (gridCorners.top.y  + gridCorners.bottom.y) / 2,
     };
 
-    const gridWidthPx  = gridCorners.right.x - gridCorners.left.x;
-    const gridHeightPx = gridCorners.bottom.y - gridCorners.top.y;
-
     this.gridInfo = {
       center:     gridCenter,
-      tileWidth:  gridWidthPx  / 44,
-      tileHeight: gridHeightPx / 44,
+      tileWidth:  (gridCorners.right.x - gridCorners.left.x) / 44,
+      tileHeight: (gridCorners.bottom.y - gridCorners.top.y) / 44,
       corners:    gridCorners,
     };
   }
@@ -125,7 +128,6 @@ export default class VillageScene extends Phaser.Scene {
   placeBuildings() {
     const { center, tileWidth, tileHeight } = this.gridInfo;
 
-    // Convert top-left tile corner + footprint size → isometric screen center
     const tileCenter = (gx, gy, size) => {
       const cx = gx + size / 2;
       const cy = gy + size / 2;
@@ -158,13 +160,15 @@ export default class VillageScene extends Phaser.Scene {
           spr.clearTint();
           this.tweens.add({ targets: spr, scaleX: scale, scaleY: scale, duration: 150, ease: 'Power2' });
         });
-        spr.on('pointerdown', () => this.onBuildingClick(spr));
+        spr.on('pointerup', () => {
+          if (this._getHasMoved && this._getHasMoved()) return;
+          this.onBuildingClick(spr);
+        });
       }
 
       this.buildings.push(spr);
     });
 
-    // Place walls from data/walls.js
     walls.forEach((w) => {
       if (w.type === 'row') {
         for (let gx = w.gxStart; gx <= w.gxEnd; gx++) {
@@ -189,7 +193,6 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   setupCameraControls() {
-    // Keyboard controls — desktop only (saves event overhead on mobile)
     if (!this._isMobile) {
       this.cursors = this.input.keyboard.createCursorKeys();
       this.wasd    = this.input.keyboard.addKeys({
@@ -200,15 +203,16 @@ export default class VillageScene extends Phaser.Scene {
       });
     }
 
-    let isDragging  = false;
-    let dragStartX  = 0;
-    let dragStartY  = 0;
-    const DEAD_ZONE = 2;
+    let isDragging = false;
+    let hasMoved   = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    const TAP_THRESH = 12;
 
     this.input.on('pointerdown', (pointer) => {
-      // For touch: only track first finger (id 1). For mouse: id is 0, always allow.
       if (pointer.id > 1) return;
       isDragging = true;
+      hasMoved   = false;
       dragStartX = pointer.x;
       dragStartY = pointer.y;
     });
@@ -217,7 +221,10 @@ export default class VillageScene extends Phaser.Scene {
       if (!isDragging || pointer.id > 1) return;
       const dx = pointer.x - dragStartX;
       const dy = pointer.y - dragStartY;
-      if (Math.abs(dx) < DEAD_ZONE && Math.abs(dy) < DEAD_ZONE) return;
+      if (!hasMoved && (Math.abs(dx) > TAP_THRESH || Math.abs(dy) > TAP_THRESH)) {
+        hasMoved = true;
+      }
+      if (!hasMoved) return;
       const zoom = this.cameras.main.zoom;
       this.cameras.main.scrollX -= dx / zoom;
       this.cameras.main.scrollY -= dy / zoom;
@@ -225,27 +232,22 @@ export default class VillageScene extends Phaser.Scene {
       dragStartY = pointer.y;
     });
 
-    this.input.on('pointerup', (pointer) => {
-      if (pointer.id <= 1) isDragging = false;
-    });
+    this.input.on('pointerup',     (pointer) => { if (pointer.id <= 1) isDragging = false; });
+    this.input.on('pointercancel', ()        => { isDragging = false; hasMoved = false; });
 
-    this.input.on('pointercancel', () => { isDragging = false; });
-
-    // Mouse wheel zoom — desktop
     this.input.on('wheel', (_pointer, _objects, _dx, deltaY) => {
       const newZoom = Phaser.Math.Clamp(
         this.cameras.main.zoom + (deltaY > 0 ? -0.1 : 0.1),
-        this._minZoom,
-        2.5
+        this._minZoom ?? 1.0, 2.5
       );
       this.cameras.main.setZoom(newZoom);
     });
+
+    this._getHasMoved = () => hasMoved;
   }
 
   onBuildingClick(building) {
-    // Guard: ignore clicks while a modal is open
     if (this._modalOpen) return;
-
     const currentScale = building.scaleX;
     this.tweens.add({
       targets:  building,
@@ -261,15 +263,11 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   update() {
-    // Keyboard pan — desktop only
     if (this._isMobile || !this.cursors) return;
-
     const cam   = this.cameras.main;
     const speed = 12 / cam.zoom;
-
     if (this.cursors.left.isDown  || this.wasd.left.isDown)  cam.scrollX -= speed;
     else if (this.cursors.right.isDown || this.wasd.right.isDown) cam.scrollX += speed;
-
     if (this.cursors.up.isDown    || this.wasd.up.isDown)    cam.scrollY -= speed;
     else if (this.cursors.down.isDown  || this.wasd.down.isDown)  cam.scrollY += speed;
   }

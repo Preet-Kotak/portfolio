@@ -20,14 +20,13 @@ const projects = [
   {
     title: 'BidKar',
     description:
-      'Clustered real-time auction platform with live Socket.io bidding, a custom Redis distributed lock (NX/PX + Lua) to prevent race conditions, and automated auction lifecycle via cron jobs.',
+      '3-person team real-time auction platform. I built roughly half the backend — Redis distributed lock (NX/PX + Lua) for race-free bidding, mock Aadhaar verification API, auction lifecycle via cron jobs, and frontend cleanup once the backend was stable.',
     tech: ['Node.js', 'Express', 'MongoDB', 'Redis', 'Socket.io', 'JWT', 'Razorpay'],
     links: [
-      // TODO: update to your fork once created
       { label: 'GitHub', href: 'https://github.com/Sai01tailor/Auction-it-all' },
     ],
     image:   'assets/projects/bidkar.png',
-    liveUrl: null,   // add live URL once deployed
+    liveUrl: null,
     status: 'wip',
   },
   {
@@ -45,19 +44,19 @@ const projects = [
   {
     title: 'KissanLink',
     description:
-      'WhatsApp-native hyperlocal marketplace for rural Gujarat farmers built in a hackathon — Gujarati conversational chatbot over 2G, MongoDB geospatial matching, Biothon 2026 Finalist (top ~400 teams).',
+      'WhatsApp-native hyperlocal marketplace for rural Gujarat farmers — Biothon 2026 Finalist (~400 teams total). Gujarati conversational chatbot over 2G, MongoDB geospatial matching, built end-to-end during the hackathon.',
     tech: ['Node.js', 'Express', 'MongoDB', 'Twilio', 'Render'],
     links: [
       { label: 'GitHub', href: 'https://github.com/Preet-Kotak/kissanlink-biothon' },
     ],
     image:   'assets/projects/kissanlink.png',
-    liveUrl: null,   // WhatsApp bot — no traditional live URL
+    liveUrl: null,
     status: 'done',
   },
   {
     title: '8086 Calculator',
     description:
-      'Fully functional multi-digit calculator in 16-bit 8086 Assembly — 32-bit arithmetic via register chaining, fixed-point decimals, custom square root algorithm, and a 2D text-mode UI.',
+      'Fully working calculator in 16-bit 8086 Assembly. 32-bit arithmetic via register chaining (high+low word), fixed-point decimals (numbers multiplied by 100 internally), digit-by-digit base-4 square root, base conversions (HEX/BIN including fractional), memory ops (MS/MR/MC), overflow and divide-by-zero handling, and a hand-drawn 80×25 text-mode UI with keyboard navigation.',
     tech: ['8086 Assembly', 'TASM', 'DOS'],
     links: [
       { label: 'GitHub', href: 'https://github.com/Preet-Kotak/calculator' },

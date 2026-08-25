@@ -9,6 +9,8 @@ import TrophyRoomModal, { CF_HANDLE } from './components/modals/TrophyRoomModal'
 import PdfLightbox       from './components/modals/PdfLightbox';
 import TrophyButton      from './components/TrophyButton';
 import CvButton          from './components/CvButton';
+import ChatButton        from './components/chat/ChatButton';
+import ChatPanel         from './components/chat/ChatPanel';
 
 const MODAL_MAP = {
   about:      'about',
@@ -21,6 +23,7 @@ function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [cfRating,    setCfRating]    = useState(null);
   const [resumeOpen,  setResumeOpen]  = useState(false);
+  const [chatOpen,    setChatOpen]    = useState(false);
 
   useEffect(() => {
     fetch(`https://codeforces.com/api/user.info?handles=${CF_HANDLE}`)
@@ -43,6 +46,15 @@ function App() {
     setActiveModal(null);
   }, []);
 
+  // Called by ChatPanel quick-actions / commands to open modals
+  const handleChatOpenModal = useCallback((key) => {
+    if (key === 'resume') {
+      setResumeOpen(true);
+    } else {
+      setActiveModal(key);
+    }
+  }, []);
+
   return (
     <div style={{ width: '100%', overflowX: 'hidden' }}>
       <OrientationPrompt />
@@ -51,6 +63,16 @@ function App() {
 
         <TrophyButton cfRating={cfRating} onClick={() => setActiveModal('trophy')} />
         <CvButton onClick={() => setResumeOpen(true)} />
+
+        {/* Chat toggle button — only show open button when closed */}
+        {!chatOpen && <ChatButton onClick={() => setChatOpen(true)} />}
+
+        {/* Chat panel — slides in from left */}
+        <ChatPanel
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          onOpenModal={handleChatOpenModal}
+        />
 
         {resumeOpen && (
           <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => setResumeOpen(false)} />

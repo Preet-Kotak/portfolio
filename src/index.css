@@ -27,10 +27,49 @@ canvas {
   height: 32px !important;
 }
 
+/* Chat button — same width as HUD, height proportional to chat_button.png (67x82 ratio) */
+.chat-btn {
+  width: 32px !important;
+  height: 39px !important;  /* 32 * 82/67 ≈ 39 */
+}
+
+/* Chat button pulse */
+@keyframes chatPulse {
+  0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 6px 22px rgba(243,170,40,0.55); }
+}
+
+/* Chat panel slide-in from left */
+@keyframes chatSlideIn {
+  from { transform: translateX(-110%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* On large screens widen the chat panel via JS min() — handled inline */
+
+/* Chat scrollbar */
+.chat-scroll::-webkit-scrollbar       { width: 4px; }
+.chat-scroll::-webkit-scrollbar-track { background: #2a2520; }
+.chat-scroll::-webkit-scrollbar-thumb { background: #5a4a35; border-radius: 2px; }
+
+/* Close chat button — same width as HUD, height proportional to close_chat.png (70x120 ratio) */
+.close-chat-btn {
+  width: 32px !important;
+  height: 55px !important;  /* 32 * 120/70 ≈ 55 */
+}
+
 @media (min-width: 1024px) {
   .hud-btn {
     width: 52px !important;
     height: 52px !important;
+  }
+  .chat-btn {
+    width: 52px !important;
+    height: 64px !important;  /* 52 * 82/67 ≈ 64 */
+  }
+  .close-chat-btn {
+    width: 52px !important;
+    height: 89px !important;  /* 52 * 120/70 ≈ 89 */
   }
 }
 

@@ -32,7 +32,7 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
     gameRef.current = new Phaser.Game({
       type:            Phaser.AUTO,
       parent:          containerRef.current,
-      backgroundColor: '#92C463',
+      backgroundColor: '#4a5a10',
       scene:           [VillageScene],
       // Give Phaser the physical pixel size so WebGL viewport is native-res
       width:  physW,
