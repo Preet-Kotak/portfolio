@@ -107,7 +107,9 @@ export default class VillageScene extends Phaser.Scene {
     }
 
     // Bounds AFTER zoom is set, so Phaser calculates scroll limits correctly
-    this.cameras.main.setBounds(0, 0, bgWorldW, bgWorldH);
+    // Extra 300px on the bottom for desktop so users can scroll further down
+    const extraBottom = this._isMobile ? 0 : 250;
+    this.cameras.main.setBounds(0, 0, bgWorldW, bgWorldH + extraBottom);
 
     // Only set initial camera position on first load — don't reset scroll on resize
     if (!isInit) return;
