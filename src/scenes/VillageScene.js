@@ -37,6 +37,10 @@ export default class VillageScene extends Phaser.Scene {
     this.load.image('trunk3',           'assets/buildings/trunk3.webp');
     this.load.image('archer-character', 'assets/buildings/archer-character.webp');
     this.load.image('wizard-character', 'assets/buildings/wizard-character.webp');
+    this.load.spritesheet('soldier-walk', 'assets/buildings/soldier-walk.png', {
+      frameWidth:  100,
+      frameHeight: 100,
+    });
   }
 
   create() {
@@ -68,6 +72,7 @@ export default class VillageScene extends Phaser.Scene {
 
     this.placeBuildings();
     this.setupCameraControls();
+    this.setupWalker();
   }
 
   _resetCamera(cssW, cssH, isInit) {
@@ -195,6 +200,11 @@ export default class VillageScene extends Phaser.Scene {
       // Sparkles on gem box
       if (d.type === 'gembox') {
         this._startSparkles(spr);
+      }
+
+      // Smoke on army camps
+      if (d.type === 'armycamp') {
+        this._startSmoke(spr);
       }
 
       this.buildings.push(spr);
@@ -392,8 +402,166 @@ export default class VillageScene extends Phaser.Scene {
     });
   }
 
-  setupCameraControls() {
-    if (!this._isMobile) {
+  /**
+   * Smoke particles rising from army camp centre.
+   * Mirrors the sparkle pattern exactly (which works) but with smoke settings.
+   */
+  _startSmoke(spr) {
+    if (!this.textures.exists('smoke-puff')) {
+      const gfx = this.make.graphics({ x: 0, y: 0, add: false });
+      gfx.fillStyle(0xffffff, 1);
+      gfx.fillCircle(8, 8, 8);
+      gfx.generateTexture('smoke-puff', 16, 16);
+      gfx.destroy();
+    }
+
+    this.add.particles(spr.x, spr.y, 'smoke-puff', {
+      x:         { min: -10, max: 10 },
+      y:         { min: -40, max: -20 },
+      lifespan:  { min: 1000, max: 1800 },
+      speed:     { min: 10, max: 25 },
+      angle:     { min: 265, max: 275 },
+      scale:     { start: 1.0, end: 2.5 },
+      alpha:     { start: 0.85, end: 0 },
+      tint:      [ 0x666666, 0x888888, 0x999999 ],
+      frequency: 250,
+      depth:     spr.depth + 2,
+      blendMode: Phaser.BlendModes.NORMAL,
+    });
+  }
+
+  /**
+   * Soldier walkers — random spawn system.
+   *
+   * Probability breakdown per spawn event:
+   *   ~35% : exactly 1 soldier on map
+   *   ~25% : exactly 2 soldiers on map
+   *   ~10% : 3+ soldiers on map
+   *   ~30% : no soldiers (rest time)
+   *
+   * Each soldier picks a random path, enters from one end,
+   * walks to the other end, then disappears.
+   * No looping — each walk is a one-shot crossing.
+   * Next spawn check happens 8–20s after current batch finishes.
+   */
+  setupWalker() {
+    const { center, tileWidth, tileHeight } = this.gridInfo;
+
+    const wp = (gx, gy) => ({
+      x: center.x + (gx + 0.5 - (gy + 0.5)) * (tileWidth  / 2),
+      y: center.y + (gx + 0.5 + (gy + 0.5)) * (tileHeight / 2),
+    });
+
+    // Each path defined as [start, ...waypoints, end]
+    // Soldiers can walk forward (start→end) or backward (end→start)
+    const PATHS = [
+      // Path A — full route: row1 → col1 → row2 → col2
+      [wp(-26,-1), wp(-17,-1), wp(-17,-17), wp(17,-17), wp(17,25)],
+      // Path B — row1 only
+      [wp(-26,-1), wp(-12,-1)],
+      // Path C — row1 → col1 → row2 straight
+      [wp(-26,-1), wp(-17,-1), wp(-17,-17), wp(25,-17)],
+      // Path D — col2 only (S3 end → col2 bottom)
+      [wp(25,-17), wp(17,-17), wp(17,25)],
+    ];
+
+    if (!this.anims.exists('soldier-walk-anim')) {
+      this.anims.create({
+        key:       'soldier-walk-anim',
+        frames:    this.anims.generateFrameNumbers('soldier-walk', { start: 0, end: 7 }),
+        frameRate: 8,
+        repeat:    -1,
+      });
+    }
+
+    const soldierScale = (tileHeight * 3.5) / 100;
+
+    // Pool of reusable sprites (max 4)
+    const pool = Array.from({ length: 4 }, () => {
+      const s = this.add.sprite(0, 0, 'soldier-walk');
+      s.setScale(soldierScale);
+      s.setOrigin(0.5, 0.5);
+      s.setDepth(99999);
+      s.setVisible(false);
+      s.active = false;
+      return s;
+    });
+
+    // Walk one soldier along a path, call onDone when finished
+    const walkPath = (soldier, waypoints, forward, onDone) => {
+      const pts  = forward ? waypoints : [...waypoints].reverse();
+      soldier.setPosition(pts[0].x, pts[0].y);
+      soldier.setVisible(true);
+      soldier.active = true;
+      soldier.play('soldier-walk-anim', true);
+
+      let i = 0;
+      const step = () => {
+        if (i >= pts.length - 1) {
+          // Reached end — hide and mark free
+          soldier.stop();
+          soldier.setVisible(false);
+          soldier.active = false;
+          onDone();
+          return;
+        }
+        const from = pts[i];
+        const to   = pts[i + 1];
+        i++;
+        const dx = to.x - from.x;
+        if (Math.abs(dx) > 1) soldier.setFlipX(dx < 0);
+        soldier.setPosition(from.x, from.y);
+        const dist     = Math.hypot(to.x - from.x, to.y - from.y);
+        const duration = (dist / (tileWidth * 1.2)) * 1000;
+        this.tweens.add({ targets: soldier, x: to.x, y: to.y, duration, ease: 'Linear', onComplete: step });
+      };
+      step();
+    };
+
+    // Decide how many soldiers to spawn this round
+    const pickCount = () => {
+      const r = Math.random();
+      if (r < 0.30) return 0;        // 30% — none
+      if (r < 0.65) return 1;        // 35% — one
+      if (r < 0.90) return 2;        // 25% — two
+      return 3;                       // 10% — three or more
+    };
+
+    const scheduleNextBatch = () => {
+      const delay = 8000 + Math.random() * 12000; // 8–20s gap
+      this.time.delayedCall(delay, spawnBatch);
+    };
+
+    const spawnBatch = () => {
+      const count   = pickCount();
+      if (count === 0) { scheduleNextBatch(); return; }
+
+      // Get free sprites from pool
+      const free = pool.filter(s => !s.active);
+      const n    = Math.min(count, free.length);
+      if (n === 0) { scheduleNextBatch(); return; }
+
+      let finished = 0;
+      const oneDone = () => {
+        finished++;
+        // Wait until all in this batch are done, then schedule next
+        if (finished >= n) scheduleNextBatch();
+      };
+
+      for (let i = 0; i < n; i++) {
+        const soldier = free[i];
+        const path    = PATHS[Math.floor(Math.random() * PATHS.length)];
+        const forward = Math.random() < 0.5;
+        // Stagger each soldier in the batch slightly
+        this.time.delayedCall(i * 1500, () => walkPath(soldier, path, forward, oneDone));
+      }
+    };
+
+    // Kick off first batch after a short initial delay
+    this.time.delayedCall(2000 + Math.random() * 3000, spawnBatch);
+  }
+
+  setupCameraControls() {    if (!this._isMobile) {
       this.cursors = this.input.keyboard.createCursorKeys();
       this.wasd    = this.input.keyboard.addKeys({
         up:    Phaser.Input.Keyboard.KeyCodes.W,
