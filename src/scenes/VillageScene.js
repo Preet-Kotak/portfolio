@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import buildings from '../data/buildings';
-import walls     from '../data/walls';
+import buildings  from '../data/buildings';
+import walls      from '../data/walls';
+import stonePaths from '../data/stonePaths';
 
 export default class VillageScene extends Phaser.Scene {
   constructor() {
@@ -27,6 +28,13 @@ export default class VillageScene extends Phaser.Scene {
     this.load.image('mortar',        'assets/buildings/mortar.png');
     this.load.image('wizardtower',   'assets/buildings/wizard-tower.png');
     this.load.image('lootcart',      'assets/buildings/loot-cart.png');
+    this.load.image('stonepath',     'assets/buildings/stone-path.webp');
+    this.load.image('gembox',        'assets/buildings/gem-box.webp');
+    this.load.image('tree1',         'assets/buildings/tree1.webp');
+    this.load.image('tree2',         'assets/buildings/tree2.webp');
+    this.load.image('trunk1',        'assets/buildings/trunk1.webp');
+    this.load.image('trunk2',        'assets/buildings/trunk2.webp');
+    this.load.image('trunk3',        'assets/buildings/trunk3.webp');
   }
 
   create() {
@@ -180,6 +188,18 @@ export default class VillageScene extends Phaser.Scene {
         }
       }
     });
+
+    stonePaths.forEach((w) => {
+      if (w.type === 'row') {
+        for (let gx = w.gxStart; gx <= w.gxEnd; gx++) {
+          this._placePathSegment(tileCenter(gx, w.gy, 1));
+        }
+      } else {
+        for (let gy = w.gyStart; gy <= w.gyEnd; gy++) {
+          this._placePathSegment(tileCenter(w.gx, gy, 1));
+        }
+      }
+    });
   }
 
   _placeWallSegment(pos) {
@@ -190,6 +210,17 @@ export default class VillageScene extends Phaser.Scene {
     wall.setOrigin(0.5, 0.5);
     wall.setDepth(pos.y - 1);
     wall.setAlpha(0.9);
+  }
+
+  _placePathSegment(pos) {
+    const { tileWidth, tileHeight } = this.gridInfo;
+    const path = this.add.image(pos.x, pos.y, 'stonepath');
+    // Fit to a 1×1 tile footprint, same logic as buildings
+    const sc   = Math.max(tileWidth / path.width, tileHeight / path.height) * 1.0;
+    path.setScale(sc);
+    path.setOrigin(0.5, 0.5);
+    path.setDepth(pos.y - 2);  // below walls and buildings
+    path.setAlpha(0.95);
   }
 
   setupCameraControls() {

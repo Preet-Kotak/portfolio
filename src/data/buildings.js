@@ -46,6 +46,18 @@ const buildings = [
   { type: 'wizardtower',   gx: -7, gy: 10, size: 3, spriteScale: 0.75, name: 'Wizard Tower'   },
   { type: 'wizardtower',   gx: -7, gy:-10, size: 3, spriteScale: 0.75, name: 'Wizard Tower'   },
 
+  // ── Environment / Nature (12 o'clock — adjust gx/gy to taste) ─────
+  { type: 'gembox', gx:  -12, gy: 18, size: 1, spriteScale: 1.2, name: 'Gem Box' },
+
+  { type: 'tree1',  gx: -11, gy: -20, size: 1, spriteScale: 3, name: 'Tree'   },
+  { type: 'tree2',  gx:  11, gy: -14, size: 1, spriteScale: 3, name: 'Tree'   },
+  { type: 'tree1',  gx: -14, gy: 13, size: 1, spriteScale: 3, name: 'Tree'   },
+  { type: 'tree1',  gx: -17, gy: 10, size: 1, spriteScale: 3, name: 'Tree'   },
+
+  { type: 'trunk1', gx: 20, gy: 12, size: 1, spriteScale: 1.3, name: 'Trunk'  },
+  { type: 'trunk2', gx: 14, gy: 18, size: 1, spriteScale: 1.3, name: 'Trunk'  },
+  { type: 'trunk3', gx: -1, gy: -15, size: 1, spriteScale: 1.3, name: 'Trunk'  },
+
 ];
 
 export default buildings;
