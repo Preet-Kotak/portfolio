@@ -47,7 +47,7 @@ const buildings = [
   { type: 'wizardtower',   gx: -7, gy:-10, size: 3, spriteScale: 0.75, name: 'Wizard Tower'   },
 
   // ── Environment / Nature (12 o'clock — adjust gx/gy to taste) ─────
-  { type: 'gembox', gx:  -12, gy: 18, size: 1, spriteScale: 1.2, name: 'Gem Box' },
+  { type: 'gembox', gx:  -12, gy: 18, size: 1, spriteScale: 1.8, name: 'Gem Box' },
 
   { type: 'tree1',  gx: -11, gy: -20, size: 1, spriteScale: 3, name: 'Tree'   },
   { type: 'tree2',  gx:  11, gy: -14, size: 1, spriteScale: 3, name: 'Tree'   },

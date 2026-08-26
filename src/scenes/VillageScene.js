@@ -26,15 +26,17 @@ export default class VillageScene extends Phaser.Scene {
     this.load.image('elixirstorage', 'assets/buildings/elixir-storage.png');
     this.load.image('goldstorage',   'assets/buildings/gold-storage.png');
     this.load.image('mortar',        'assets/buildings/mortar.png');
-    this.load.image('wizardtower',   'assets/buildings/wizard-tower.png');
-    this.load.image('lootcart',      'assets/buildings/loot-cart.png');
-    this.load.image('stonepath',     'assets/buildings/stone-path.webp');
-    this.load.image('gembox',        'assets/buildings/gem-box.webp');
-    this.load.image('tree1',         'assets/buildings/tree1.webp');
-    this.load.image('tree2',         'assets/buildings/tree2.webp');
-    this.load.image('trunk1',        'assets/buildings/trunk1.webp');
-    this.load.image('trunk2',        'assets/buildings/trunk2.webp');
-    this.load.image('trunk3',        'assets/buildings/trunk3.webp');
+    this.load.image('wizardtower',      'assets/buildings/wizard-tower.png');
+    this.load.image('lootcart',         'assets/buildings/loot-cart.png');
+    this.load.image('stonepath',        'assets/buildings/stone-path.webp');
+    this.load.image('gembox',           'assets/buildings/gem-box.webp');
+    this.load.image('tree1',            'assets/buildings/tree1.webp');
+    this.load.image('tree2',            'assets/buildings/tree2.webp');
+    this.load.image('trunk1',           'assets/buildings/trunk1.webp');
+    this.load.image('trunk2',           'assets/buildings/trunk2.webp');
+    this.load.image('trunk3',           'assets/buildings/trunk3.webp');
+    this.load.image('archer-character', 'assets/buildings/archer-character.webp');
+    this.load.image('wizard-character', 'assets/buildings/wizard-character.webp');
   }
 
   create() {
@@ -102,10 +104,18 @@ export default class VillageScene extends Phaser.Scene {
     // Bounds AFTER zoom is set, so Phaser calculates scroll limits correctly
     this.cameras.main.setBounds(0, 0, bgWorldW, bgWorldH);
 
-    const { corners } = this.gridInfo;
-    const fx = this.gridInfo.center.x;
-    const fy = corners.top.y + (corners.bottom.y - corners.top.y) * 0.72;
-    this.cameras.main.centerOn(fx, fy);
+    // Only set initial camera position on first load — don't reset scroll on resize
+    if (!isInit) return;
+
+    // Focus on Town Hall center (gx:-7, gy:-1, size:4 → center at cx=-5, cy=1)
+    const { center, tileWidth, tileHeight } = this.gridInfo;
+    const thCx = -5;  // gx + size/2
+    const thCy =  1;  // gy + size/2
+    const fx = center.x + (thCx - thCy) * (tileWidth  / 2);
+    const fy = center.y + (thCx + thCy) * (tileHeight / 2);
+
+    // centerOn works in world coords and respects bounds automatically
+    this.cameras.main.centerOn(fx, fy + tileHeight * 8);
   }
 
   _rebuildGrid(cssW, cssH) {
@@ -172,6 +182,19 @@ export default class VillageScene extends Phaser.Scene {
           if (this._getHasMoved && this._getHasMoved()) return;
           this.onBuildingClick(spr);
         });
+
+        // Idle pulse on all interactive buildings — hints to user they're clickable
+        this._startPulseAnim(spr, scale);
+      }
+
+      // Idle sway on trees and trunks — stagger so they don't all move in sync
+      if (['tree1', 'tree2', 'trunk1', 'trunk2', 'trunk3'].includes(d.type)) {
+        this._startSwayAnim(spr, scale);
+      }
+
+      // Sparkles on gem box
+      if (d.type === 'gembox') {
+        this._startSparkles(spr);
       }
 
       this.buildings.push(spr);
@@ -200,6 +223,16 @@ export default class VillageScene extends Phaser.Scene {
         }
       }
     });
+
+    // Place characters on top of their towers
+    // Archer on the top-right archer tower (gx:6, gy:-10)
+    // Wizard on the top wizard tower (gx:-7, gy:-10)
+    this._placeCharacter('archer-character', tileCenter(6,  -10, 3));
+    this._placeCharacter('wizard-character', tileCenter(-7, -10, 3));
+    this._placeCharacter('archer-character', tileCenter(6,   10, 3));
+    this._placeCharacter('archer-character', tileCenter(-13, -5, 3));
+    this._placeCharacter('archer-character', tileCenter(-13,  5, 3));
+    this._placeCharacter('wizard-character', tileCenter(-7,  10, 3));
   }
 
   _placeWallSegment(pos) {
@@ -221,6 +254,142 @@ export default class VillageScene extends Phaser.Scene {
     path.setOrigin(0.5, 0.5);
     path.setDepth(pos.y - 2);  // below walls and buildings
     path.setAlpha(0.95);
+  }
+
+  /**
+   * Place a character sprite standing on top of a tower.
+   * towerPos is the world-space center of the tower (from tileCenter).
+   * The character is scaled to ~1.5 tiles tall and anchored at its feet
+   * so it sits naturally on the tower top.
+   */
+  _placeCharacter(textureKey, towerPos) {
+    const { tileHeight } = this.gridInfo;
+    const spr = this.add.image(towerPos.x, towerPos.y, textureKey);
+
+    // Scale so character height ≈ 1.5 tile heights — visible but not huge
+    const sc = (tileHeight * 1.5) / spr.height;
+    spr.setScale(sc);
+
+    // Anchor at feet (origin bottom-center) then shift up to sit on tower top
+    spr.setOrigin(0.5, 1.0);
+    spr.setY(towerPos.y - tileHeight * 0.6);
+
+    // Depth just above the tower so character renders in front
+    spr.setDepth(towerPos.y + 1);
+  }
+
+  /**
+   * Gentle idle pulse for interactive buildings.
+   * Scale breathes between base and base×1.05 + warm gold tint pulses in sync.
+   * Paused when pointerover fires (hover tween takes over),
+   * resumed on pointerout so it doesn't fight the hover scale.
+   */
+  _startPulseAnim(spr, baseScale) {
+    const duration = 950;
+
+    // Scale tween
+    const scaleTween = this.tweens.add({
+      targets:  spr,
+      scaleX:   baseScale * 1.05,
+      scaleY:   baseScale * 1.05,
+      duration,
+      ease:     'Sine.easeInOut',
+      yoyo:     true,
+      repeat:   -1,
+    });
+
+    // Tint tween — cycles between no tint (0xffffff) and warm gold (0xffe87a)
+    const tintProxy = { t: 0 };
+    const tintTween = this.tweens.add({
+      targets:  tintProxy,
+      t:        1,
+      duration,
+      ease:     'Sine.easeInOut',
+      yoyo:     true,
+      repeat:   -1,
+      onUpdate: () => {
+        const r = Math.round(Phaser.Math.Linear(0xff, 0xff, tintProxy.t));
+        const g = Math.round(Phaser.Math.Linear(0xff, 0xe8, tintProxy.t));
+        const b = Math.round(Phaser.Math.Linear(0xff, 0x55, tintProxy.t));
+        spr.setTint((r << 16) | (g << 8) | b);
+      },
+    });
+
+    // Pause both while hovered so they don't fight hover effects
+    spr.on('pointerover', () => {
+      scaleTween.pause();
+      tintTween.pause();
+    });
+    spr.on('pointerout', () => {
+      spr.setScale(baseScale);
+      spr.clearTint();
+      scaleTween.resume();
+      tintTween.resume();
+    });
+  }
+
+  /**
+   * Organic sway for trees/trunks.
+   * scaleX leans ±5%, scaleY does a subtle counter-movement for realism.
+   * Each tree gets a random duration + delay so none are in sync.
+   */
+  _startSwayAnim(spr, baseScale) {
+    const delay    = Math.random() * 3000;
+    const duration = 1600 + Math.random() * 800;
+
+    // Horizontal lean
+    this.tweens.add({
+      targets:  spr,
+      scaleX:   baseScale * 0.95,
+      duration,
+      ease:     'Sine.easeInOut',
+      yoyo:     true,
+      repeat:   -1,
+      delay,
+    });
+
+    // Subtle vertical counter — slightly taller when leaning, slightly shorter at centre
+    this.tweens.add({
+      targets:  spr,
+      scaleY:   baseScale * 1.025,
+      duration,
+      ease:     'Sine.easeInOut',
+      yoyo:     true,
+      repeat:   -1,
+      delay,    // same delay so X and Y stay in phase
+    });
+  }
+
+  /**
+   * Sparkle particles on the gem box.
+   * Draws a tiny white circle texture at runtime — no extra asset needed.
+   * Particles drift upward, fade out, and loop continuously.
+   */
+  _startSparkles(spr) {
+    // Create a small circle texture programmatically
+    const gfx = this.make.graphics({ x: 0, y: 0, add: false });
+    gfx.fillStyle(0xffffff, 1);
+    gfx.fillCircle(4, 4, 4);
+    gfx.generateTexture('sparkle-dot', 8, 8);
+    gfx.destroy();
+
+    // Colour tints: white, cyan, gold, light-green — gem colours
+    const tints = [0x4488ff, 0xff4444, 0x00ffff];
+
+    this.add.particles(spr.x, spr.y, 'sparkle-dot', {
+      // Spread around the gem box footprint
+      x:          { min: -spr.displayWidth  * 0.35, max: spr.displayWidth  * 0.35 },
+      y:          { min: -spr.displayHeight * 0.35, max: spr.displayHeight * 0.05 },
+      lifespan:   { min: 600, max: 1100 },
+      speed:      { min: 8,   max: 22  },
+      angle:      { min: 250, max: 290 },   // mostly upward
+      scale:      { start: 0.55, end: 0 },  // shrink to nothing as they fade
+      alpha:      { start: 0.9,  end: 0 },
+      tint:       tints,
+      frequency:  120,   // emit one particle every 120ms
+      depth:      spr.depth + 1,
+      blendMode:  Phaser.BlendModes.ADD,    // additive = bright glowy look
+    });
   }
 
   setupCameraControls() {
