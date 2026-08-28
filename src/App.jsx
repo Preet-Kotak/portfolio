@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import PhaserGame        from './components/phaser/PhaserGame';
-import OrientationPrompt from './components/OrientationPrompt';
+import LandingPage       from './components/LandingPage';
+import IntroScreen       from './components/IntroScreen';
+import ProfessionalPage  from './components/ProfessionalPage';
 import AboutModal        from './components/modals/AboutModal';
 import SkillsModal       from './components/modals/SkillsModal';
 import ProjectsModal     from './components/modals/ProjectsModal';
@@ -14,6 +16,9 @@ import ChatPanel         from './components/chat/ChatPanel';
 import TutorialOverlay   from './components/tutorial/TutorialOverlay';
 import useTutorial       from './hooks/useTutorial';
 
+// Always show landing on fresh page load — never skip it via localStorage.
+// localStorage is only used to remember the choice within the same session
+// so returning visitors still see the landing (intended behaviour for a portfolio).
 const MODAL_MAP = {
   about:      'about',
   barracks:   'barracks',
@@ -22,6 +27,23 @@ const MODAL_MAP = {
 };
 
 function App() {
+  // ── Landing: which version is active ──────────────────────────
+  // Always starts null (landing) on every page load — no localStorage skip
+  const [version, setVersion] = useState(null); // null | 'intro' | 'game' | 'pro'
+
+  const handleChooseGame = useCallback(() => {
+    setVersion('intro');   // show intro first, then game
+  }, []);
+
+  const handleChoosePro = useCallback(() => {
+    setVersion('pro');
+  }, []);
+
+  const handleIntroDone = useCallback(() => {
+    setVersion('game');
+  }, []);
+
+  // ── Game state ────────────────────────────────────────────────
   const [activeModal, setActiveModal] = useState(null);
   const [cfRating,    setCfRating]    = useState(null);
   const [resumeOpen,  setResumeOpen]  = useState(false);
@@ -64,49 +86,67 @@ function App() {
 
   return (
     <div style={{ width: '100%', overflowX: 'hidden' }}>
-      <OrientationPrompt />
-      <div style={{ position: 'relative', width: '100%' }}>
-        <PhaserGame onBuildingClick={handleBuildingClick} modalOpen={activeModal !== null} phaserGameRef={phaserGameRef} />
-
-        <div id="tutorial-trophy-btn">
-          <TrophyButton cfRating={cfRating} onClick={() => setActiveModal('trophy')} />
-        </div>
-        <CvButton onClick={() => setResumeOpen(true)} />
-
-        {/* Chat toggle button — only show open button when closed */}
-        {!chatOpen && (
-          <div id="tutorial-chat-btn">
-            <ChatButton onClick={() => setChatOpen(true)} />
-          </div>
-        )}
-
-        {/* Chat panel — slides in from left */}
-        <ChatPanel
-          isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
-          onOpenModal={handleChatOpenModal}
+      {/* ── Landing screen ─────────────────────────────────────── */}
+      {version === null && (
+        <LandingPage
+          onChooseGame={handleChooseGame}
+          onChoosePro={handleChoosePro}
         />
+      )}
 
-        {resumeOpen && (
-          <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => setResumeOpen(false)} />
-        )}
+      {/* ── Cinematic name intro ────────────────────────────────── */}
+      {version === 'intro' && (
+        <IntroScreen onDone={handleIntroDone} />
+      )}
 
-        <AboutModal        isOpen={activeModal === 'about'}      onClose={handleCloseModal} />
-        <SkillsModal       isOpen={activeModal === 'barracks'}   onClose={handleCloseModal} />
-        <ProjectsModal     isOpen={activeModal === 'builderhut'} onClose={handleCloseModal} />
-        <AchievementsModal isOpen={activeModal === 'laboratory'} onClose={handleCloseModal} />
-        <TrophyRoomModal   isOpen={activeModal === 'trophy'}     onClose={handleCloseModal} />
+      {/* ── Professional page (Phase 11 placeholder) ───────────── */}
+      {version === 'pro' && <ProfessionalPage />}
 
-        {/* Tutorial overlay — rendered on top of everything, hidden while a modal is open */}
-        {isActive && !activeModal && (
-          <TutorialOverlay
-            step={step}
-            advance={advance}
-            skip={skip}
-            gameRef={phaserGameRef}
+      {/* ── Gamified village (existing CoC experience) ─────────── */}
+      {version === 'game' && (
+        <div style={{ position: 'relative', width: '100%' }}>
+          <PhaserGame onBuildingClick={handleBuildingClick} modalOpen={activeModal !== null} phaserGameRef={phaserGameRef} />
+
+          <div id="tutorial-trophy-btn">
+            <TrophyButton cfRating={cfRating} onClick={() => setActiveModal('trophy')} />
+          </div>
+          <CvButton onClick={() => setResumeOpen(true)} />
+
+          {/* Chat toggle button — only show open button when closed */}
+          {!chatOpen && (
+            <div id="tutorial-chat-btn">
+              <ChatButton onClick={() => setChatOpen(true)} />
+            </div>
+          )}
+
+          {/* Chat panel — slides in from left */}
+          <ChatPanel
+            isOpen={chatOpen}
+            onClose={() => setChatOpen(false)}
+            onOpenModal={handleChatOpenModal}
           />
-        )}
-      </div>
+
+          {resumeOpen && (
+            <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => setResumeOpen(false)} />
+          )}
+
+          <AboutModal        isOpen={activeModal === 'about'}      onClose={handleCloseModal} />
+          <SkillsModal       isOpen={activeModal === 'barracks'}   onClose={handleCloseModal} />
+          <ProjectsModal     isOpen={activeModal === 'builderhut'} onClose={handleCloseModal} />
+          <AchievementsModal isOpen={activeModal === 'laboratory'} onClose={handleCloseModal} />
+          <TrophyRoomModal   isOpen={activeModal === 'trophy'}     onClose={handleCloseModal} />
+
+          {/* Tutorial overlay — rendered on top of everything, hidden while a modal is open */}
+          {isActive && !activeModal && (
+            <TutorialOverlay
+              step={step}
+              advance={advance}
+              skip={skip}
+              gameRef={phaserGameRef}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
