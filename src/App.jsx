@@ -8,13 +8,16 @@ import SkillsModal       from './components/modals/SkillsModal';
 import ProjectsModal     from './components/modals/ProjectsModal';
 import AchievementsModal from './components/modals/AchievementsModal';
 import TrophyRoomModal, { CF_HANDLE } from './components/modals/TrophyRoomModal';
+import ContactFormModal from './components/modals/ContactFormModal';
 import PdfLightbox       from './components/modals/PdfLightbox';
 import TrophyButton      from './components/TrophyButton';
 import CvButton          from './components/CvButton';
+import MusicButton       from './components/MusicButton';
 import ChatButton        from './components/chat/ChatButton';
 import ChatPanel         from './components/chat/ChatPanel';
 import TutorialOverlay   from './components/tutorial/TutorialOverlay';
 import useTutorial       from './hooks/useTutorial';
+import useGameAudio      from './hooks/useGameAudio';
 
 // Always show landing on fresh page load — never skip it via localStorage.
 // localStorage is only used to remember the choice within the same session
@@ -24,16 +27,27 @@ const MODAL_MAP = {
   barracks:   'barracks',
   builderhut: 'builderhut',
   laboratory: 'laboratory',
+  contact:    'contact',
 };
 
 function App() {
   // ── Landing: which version is active ──────────────────────────
-  // Always starts null (landing) on every page load — no localStorage skip
   const [version, setVersion] = useState(null); // null | 'intro' | 'game' | 'pro'
 
+  // ── Centralised audio ─────────────────────────────────────────
+  const {
+    musicOn,
+    toggleMusic,
+    startGameMusic,
+    playModalOpen,
+    playModalClose,
+    playNotification,
+  } = useGameAudio();
+
   const handleChooseGame = useCallback(() => {
-    setVersion('intro');   // show intro first, then game
-  }, []);
+    const playingIntro = startGameMusic();
+    setVersion(playingIntro ? 'intro' : 'game');
+  }, [startGameMusic]);
 
   const handleChoosePro = useCallback(() => {
     setVersion('pro');
@@ -66,23 +80,26 @@ function App() {
   }, []);
 
   const handleBuildingClick = useCallback((modalKey) => {
+    playModalOpen();
     setActiveModal(MODAL_MAP[modalKey] ?? null);
-  }, []);
+  }, [playModalOpen]);
 
   const handleCloseModal = useCallback(() => {
-    // Let tutorial know which modal just closed so it can advance the step
+    playModalClose();
     onModalClosed(activeModal);
     setActiveModal(null);
-  }, [activeModal, onModalClosed]);
+  }, [activeModal, onModalClosed, playModalClose]);
 
   // Called by ChatPanel quick-actions / commands to open modals
   const handleChatOpenModal = useCallback((key) => {
     if (key === 'resume') {
+      playModalOpen();
       setResumeOpen(true);
     } else {
+      playModalOpen();
       setActiveModal(key);
     }
-  }, []);
+  }, [playModalOpen]);
 
   return (
     <div style={{ width: '100%', overflowX: 'hidden' }}>
@@ -108,9 +125,10 @@ function App() {
           <PhaserGame onBuildingClick={handleBuildingClick} modalOpen={activeModal !== null} phaserGameRef={phaserGameRef} />
 
           <div id="tutorial-trophy-btn">
-            <TrophyButton cfRating={cfRating} onClick={() => setActiveModal('trophy')} />
+            <TrophyButton cfRating={cfRating} onClick={() => { playModalOpen(); setActiveModal('trophy'); }} />
           </div>
-          <CvButton onClick={() => setResumeOpen(true)} />
+          <CvButton onClick={() => { playModalOpen(); setResumeOpen(true); }} />
+          <MusicButton musicOn={musicOn} onToggle={toggleMusic} />
 
           {/* Chat toggle button — only show open button when closed */}
           {!chatOpen && (
@@ -124,10 +142,11 @@ function App() {
             isOpen={chatOpen}
             onClose={() => setChatOpen(false)}
             onOpenModal={handleChatOpenModal}
+            onBotReply={playNotification}
           />
 
           {resumeOpen && (
-            <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => setResumeOpen(false)} />
+            <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => { playModalClose(); setResumeOpen(false); }} />
           )}
 
           <AboutModal        isOpen={activeModal === 'about'}      onClose={handleCloseModal} />

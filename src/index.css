@@ -105,3 +105,14 @@ canvas {
     top: 74px !important;  /* 10px + 52px + 12px gap */
   }
 }
+
+/* MusicButton top offset — must match cv btn bottom + gap */
+.hud-music-top {
+  top: 90px !important;  /* 50px + 32px + 8px gap */
+}
+
+@media (min-width: 1024px) {
+  .hud-music-top {
+    top: 138px !important;  /* 74px + 52px + 12px gap */
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import emailjs from '@emailjs/browser';
 import MessageLog from './MessageLog';
 import CloseChatButton from './CloseChatButton';
 
@@ -96,10 +97,10 @@ function SendBtn({ onClick, disabled }) {
 
 /* ── Quick buttons: About, Contact, Help, Clear ── */
 const QUICK_ACTIONS = [
-  { label: '👤 About',   command: 'about'   },
-  { label: '📬 Contact', command: 'contact' },
-  { label: '❓ Help',    command: 'help'    },
-  { label: '🧹 Clear',   command: 'clear'   },
+  { label: '👤 About',   command: 'about'          },
+  { label: '📬 Contact', command: '__contact__'     },
+  { label: '❓ Help',    command: 'help'            },
+  { label: '🧹 Clear',   command: 'clear'           },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -288,26 +289,145 @@ function getTime() {
 }
 
 /* ── Main ChatPanel ── */
-function ChatPanel({ isOpen, onClose, onOpenModal }) {
+function ChatPanel({ isOpen, onClose, onOpenModal, onBotReply }) {
   const [messages, setMessages] = useState([
     { id: 1, role: 'bot', text: 'Hey! Ask me anything about Preet.\n\nTry: "frontend", "bidkar", "leetcode", or "help" for everything I know.', time: getTime() },
   ]);
   const [input, setInput]   = useState('');
   const inputRef            = useRef(null);
   const nextId              = useRef(2);
-  // Build KB once, recreating only if onOpenModal changes (it's stable via useCallback in App)
   const kb                  = useRef(null);
   if (!kb.current) kb.current = buildKnowledgeBase(onOpenModal);
+
+  // Notification sound delegated to parent (App) so it respects global musicOn
+  const playNotif = useCallback(() => {
+    onBotReply?.();
+  }, [onBotReply]);
+
+  // ── Contact flow state machine ──────────────────────────────────
+  // null = not in flow  |  'name' | 'email' | 'message' | 'sending'
+  const contactStep = useRef(null);
+  const contactData = useRef({ name: '', email: '', message: '' });
+
+  const botMsg = useCallback((text) => {
+    setMessages(prev => [...prev, { id: nextId.current++, role: 'bot', text, time: getTime() }]);
+    playNotif();
+  }, [playNotif]);
+
+  const startContactFlow = useCallback(() => {
+    contactStep.current = 'name';
+    contactData.current = { name: '', email: '', message: '' };
+    setMessages(prev => [
+      ...prev,
+      { id: nextId.current++, role: 'user', text: '📬 Contact', time: getTime() },
+      { id: nextId.current++, role: 'bot',  text: "Sure! Let's get a message to Preet.\n\nWhat's your name, Chief?", time: getTime() },
+    ]);
+    playNotif();
+    setInput('');
+  }, [playNotif]);
+
+  const cancelContactFlow = useCallback(() => {
+    contactStep.current = null;
+    contactData.current = { name: '', email: '', message: '' };
+  }, []);
 
   const sendMessage = useCallback(async (text) => {
     const trimmed = text.trim();
     if (!trimmed) return;
+    setInput('');
+
+    // ── Contact flow intercept ─────────────────────────────────────
+    if (contactStep.current) {
+      const step = contactStep.current;
+
+      // Clear cancels the flow at any point
+      if (trimmed.toLowerCase() === 'clear') {
+        cancelContactFlow();
+        setMessages([{ id: nextId.current++, role: 'bot', text: '🧹 Chat cleared!', time: getTime() }]);
+        return;
+      }
+
+      setMessages(prev => [...prev, { id: nextId.current++, role: 'user', text: trimmed, time: getTime() }]);
+
+      if (step === 'name') {
+        contactData.current.name = trimmed;
+        contactStep.current = 'email';
+        botMsg(`Nice to meet you, ${trimmed}! 👋\n\nWhat's your email address?`);
+        return;
+      }
+
+      if (step === 'email') {
+        // Basic email validation
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+          botMsg("That doesn't look like a valid email. Try again?");
+          return;
+        }
+        contactData.current.email = trimmed;
+        contactStep.current = 'message';
+        botMsg("Got it! Now type your message and hit Enter to send it.");
+        return;
+      }
+
+      if (step === 'message') {
+        contactData.current.message = trimmed;
+        contactStep.current = 'sending';
+
+        // Show sending indicator
+        const typingId = nextId.current++;
+        setMessages(prev => [...prev, { id: typingId, role: 'bot', text: '📨 Sending…', time: getTime() }]);
+
+        try {
+          await emailjs.send(
+            import.meta.env.VITE_EMAILJS_SERVICE_ID,
+            import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+            {
+              from_name:  contactData.current.name,
+              from_email: contactData.current.email,
+              message:    contactData.current.message,
+            },
+            { publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY },
+          );
+          setMessages(prev => prev.map(m =>
+            m.id === typingId
+              ? { ...m, text: `✅ Message sent! I'll get back to you soon, ${contactData.current.name}.` }
+              : m
+          ));
+          playNotif();
+        } catch (err) {
+          console.error('EmailJS error:', err);
+          setMessages(prev => prev.map(m =>
+            m.id === typingId
+              ? { ...m, text: '❌ Failed to send. Please try emailing directly: preetdkotak@gmail.com' }
+              : m
+          ));
+          playNotif();
+        }
+
+        contactStep.current = null;
+        contactData.current = { name: '', email: '', message: '' };
+        return;
+      }
+
+      return;
+    }
+
+    // ── Normal chat flow ───────────────────────────────────────────
+    // Handle contact quick button
+    if (trimmed === '__contact__') {
+      startContactFlow();
+      return;
+    }
 
     const userMsg = { id: nextId.current++, role: 'user', text: trimmed, time: getTime() };
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
 
     const cmd = trimmed.toLowerCase();
+
+    // Also allow "contact" keyword to start flow
+    if (cmd === 'contact' || cmd === 'send message' || cmd === 'message') {
+      startContactFlow();
+      return;
+    }
 
     // 1. Exact full phrase
     let handler = kb.current[cmd];
@@ -339,8 +459,9 @@ function ChatPanel({ isOpen, onClose, onOpenModal }) {
     }
 
     if (!handler) {
-      const botMsg = { id: nextId.current++, role: 'bot', text: "Not sure about that one. Type \"help\" to see what I can answer.", time: getTime() };
-      setMessages(prev => [...prev, botMsg]);
+      const botMsg2 = { id: nextId.current++, role: 'bot', text: 'Not sure about that one. Type "help" to see what I can answer.', time: getTime() };
+      setMessages(prev => [...prev, botMsg2]);
+      playNotif();
       return;
     }
 
@@ -349,17 +470,18 @@ function ChatPanel({ isOpen, onClose, onOpenModal }) {
       return;
     }
 
-    // Show typing indicator while async handlers resolve
     const typingId = nextId.current++;
     setMessages(prev => [...prev, { id: typingId, role: 'bot', text: '…', time: getTime() }]);
 
     try {
       const result = typeof handler === 'function' ? await handler() : handler;
       setMessages(prev => prev.map(m => m.id === typingId ? { ...m, text: result } : m));
+      playNotif();
     } catch {
       setMessages(prev => prev.map(m => m.id === typingId ? { ...m, text: '❌ Something went wrong.' } : m));
+      playNotif();
     }
-  }, [onOpenModal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onOpenModal, startContactFlow, cancelContactFlow, botMsg, playNotif]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -496,6 +618,7 @@ ChatPanel.propTypes = {
   isOpen:      PropTypes.bool.isRequired,
   onClose:     PropTypes.func.isRequired,
   onOpenModal: PropTypes.func.isRequired,
+  onBotReply:  PropTypes.func,
 };
 
 QuickBtn.propTypes = {

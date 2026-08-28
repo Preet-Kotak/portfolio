@@ -37,10 +37,6 @@ export default function IntroScreen({ onDone }) {
   const lineRefs  = useRef(LINES.map(() => null));
 
   useEffect(() => {
-    /* ── SOUND HOOK — play your intro audio here ──────────────
-       e.g.: introAudioRef.current?.play();
-    ─────────────────────────────────────────────────────────── */
-
     const timers = [];
 
     LINES.forEach(({ fadeAt }, i) => {
@@ -60,7 +56,9 @@ export default function IntroScreen({ onDone }) {
     /* fire done */
     timers.push(setTimeout(onDone, doneAt));
 
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      timers.forEach(clearTimeout);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
