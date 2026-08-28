@@ -50,8 +50,7 @@ function App() {
   }, [startGameMusic]);
 
   const handleChoosePro = useCallback(() => {
-    // Show the cinematic intro, then load the professional page (no audio)
-    setVersion('pro-intro');
+    setVersion('pro');
   }, []);
 
   const handleIntroDone = useCallback(() => {
@@ -103,7 +102,7 @@ function App() {
   }, [playModalOpen]);
 
   return (
-    <div style={{ width: '100%', overflowX: 'hidden' }}>
+    <div style={{ width: '100%', minWidth: 0 }}>
       {/* ── Landing screen ─────────────────────────────────────── */}
       {version === null && (
         <LandingPage
@@ -115,11 +114,6 @@ function App() {
       {/* ── Cinematic name intro (game path) ───────────────────── */}
       {version === 'intro' && (
         <IntroScreen onDone={handleIntroDone} />
-      )}
-
-      {/* ── Cinematic name intro (professional path, no audio) ─── */}
-      {version === 'pro-intro' && (
-        <IntroScreen onDone={() => setVersion('pro')} />
       )}
 
       {/* ── Professional page (Phase 11) ─────────────────────── */}

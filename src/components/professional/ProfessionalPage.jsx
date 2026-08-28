@@ -3,10 +3,11 @@
  * Tasks completed: 11.2 (vars+waves) 11.3 (nav) 11.4 (hero) 11.5 (about)
  */
 import PropTypes from 'prop-types';
-import ProNav        from './ProNav';
-import HeroSection   from './HeroSection';
-import AboutSection  from './AboutSection';
-import WaveDivider   from './WaveDivider';
+import ProNav           from './ProNav';
+import HeroSection      from './HeroSection';
+import AboutSection     from './AboutSection';
+import ProjectsSection  from './ProjectsSection';
+import WaveDivider      from './WaveDivider';
 
 const CSS_VARS = `
   :root {
@@ -19,7 +20,7 @@ const CSS_VARS = `
     --dark-text:        #2C1A0E;
     --muted-text:       #8A7A6A;
   }
-  .pro-page { overflow-x: hidden; }
+  .pro-page { max-width: 100%; min-width: 0; }
   .pro-page *, .pro-page *::before, .pro-page *::after {
     box-sizing: border-box;
     margin: 0;
@@ -56,16 +57,8 @@ export default function ProfessionalPage({ onBack, onSwitchToGame }) {
         {/* 11.5 — About */}
         <AboutSection />
 
-        {/* 11.6 placeholder — Projects */}
-        <section id="projects" style={{
-          minHeight: '40vh', background: 'var(--light-parch-grad)',
-          position: 'relative', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontFamily: '"Fira Code",monospace',
-          color: 'var(--dark-text)', fontSize: '16px', paddingBottom: '90px',
-        }}>
-          Projects — coming soon
-          <WaveDivider direction="to-dark" />
-        </section>
+        {/* 11.6 — Projects */}
+        <ProjectsSection />
 
         {/* 11.7 placeholder — Achievements */}
         <section id="achievements" style={{

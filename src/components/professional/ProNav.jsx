@@ -55,8 +55,17 @@ const HEADER_STYLES = `
     text-decoration: none;
     cursor: pointer;
     transition: box-shadow 200ms ease;
+    overflow: hidden;
+    padding: 0;
   }
   .pro-logo-mark:hover { box-shadow: 0 0 10px var(--gold); }
+  .pro-logo-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+  }
 
   /* Desktop nav (inline) */
   .pro-nav-desktop {
@@ -209,7 +218,7 @@ export default function ProNav({ onBack, onSwitchToGame }) {
             onClick={handleLogoClick}
             aria-label="Scroll to top"
           >
-            {about.initials}
+            <img src={about.profilePhoto} alt={about.name} />
           </a>
         </div>
 
