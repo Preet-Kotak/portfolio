@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import PhaserGame        from './components/phaser/PhaserGame';
 import LandingPage       from './components/LandingPage';
 import IntroScreen       from './components/IntroScreen';
-import ProfessionalPage  from './components/ProfessionalPage';
+import ProfessionalPage  from './components/professional/ProfessionalPage';
 import AboutModal        from './components/modals/AboutModal';
 import SkillsModal       from './components/modals/SkillsModal';
 import ProjectsModal     from './components/modals/ProjectsModal';
@@ -50,7 +50,8 @@ function App() {
   }, [startGameMusic]);
 
   const handleChoosePro = useCallback(() => {
-    setVersion('pro');
+    // Show the cinematic intro, then load the professional page (no audio)
+    setVersion('pro-intro');
   }, []);
 
   const handleIntroDone = useCallback(() => {
@@ -111,13 +112,23 @@ function App() {
         />
       )}
 
-      {/* ── Cinematic name intro ────────────────────────────────── */}
+      {/* ── Cinematic name intro (game path) ───────────────────── */}
       {version === 'intro' && (
         <IntroScreen onDone={handleIntroDone} />
       )}
 
-      {/* ── Professional page (Phase 11 placeholder) ───────────── */}
-      {version === 'pro' && <ProfessionalPage />}
+      {/* ── Cinematic name intro (professional path, no audio) ─── */}
+      {version === 'pro-intro' && (
+        <IntroScreen onDone={() => setVersion('pro')} />
+      )}
+
+      {/* ── Professional page (Phase 11) ─────────────────────── */}
+      {version === 'pro' && (
+        <ProfessionalPage
+          onBack={() => setVersion(null)}
+          onSwitchToGame={handleChooseGame}
+        />
+      )}
 
       {/* ── Gamified village (existing CoC experience) ─────────── */}
       {version === 'game' && (

@@ -340,8 +340,7 @@ function ChoiceScreen({ onChooseGame, onChoosePro }) {
                   btnLabel="Enter"
                   btnVariant="gold"
                   onClick={onChoosePro}
-                  disabled={true}
-                  badge="Phase 11"
+                  disabled={false}
                   mobile={mobile}
                 />
               </div>
