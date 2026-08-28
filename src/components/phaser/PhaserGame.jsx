@@ -10,7 +10,7 @@ function getViewportWidth() {
   return document.documentElement.clientWidth || window.innerWidth;
 }
 
-function PhaserGame({ onBuildingClick, modalOpen }) {
+function PhaserGame({ onBuildingClick, modalOpen, phaserGameRef }) {
   const gameRef      = useRef(null);
   const containerRef = useRef(null);
   const onClickRef   = useRef(onBuildingClick);
@@ -62,6 +62,9 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
         smoothStep: true,
       },
     });
+
+    // Expose game instance to parent via ref
+    if (phaserGameRef) phaserGameRef.current = gameRef.current;
 
     // After Phaser creates the canvas, pin its CSS size to the logical (CSS) size.
     // This makes the canvas physically large (crisp) but visually the right size.
@@ -123,6 +126,7 @@ function PhaserGame({ onBuildingClick, modalOpen }) {
 PhaserGame.propTypes = {
   onBuildingClick: PropTypes.func,
   modalOpen:       PropTypes.bool,
+  phaserGameRef:   PropTypes.object,
 };
 
 PhaserGame.defaultProps = {

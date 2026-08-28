@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import Modal, { C } from './Modal';
+import Modal, { C, useMobile } from './Modal';
 import ModalArrow from './ModalArrow';
 import skills from '../../data/skills';
 
 /* ── Single skill tile ──────────────────────────────────────────────── */
-function SkillTile({ name, logo }) {
+function SkillTile({ name, logo, mobile }) {
   const [imgFailed, setImgFailed] = useState(false);
   const showImg = logo && !imgFailed;
+  const sz = mobile ? '56px' : '72px';
 
   return (
     <div
@@ -17,12 +18,12 @@ function SkillTile({ name, logo }) {
         flexDirection:  'column',
         alignItems:     'center',
         justifyContent: 'center',
-        width:          '72px',
-        height:         '72px',
+        width:          sz,
+        height:         sz,
         borderRadius:   '10px',
         background:     C.header,
         border:         `2px solid ${C.bgDark}`,
-        padding:        '8px',
+        padding:        mobile ? '6px' : '8px',
         transition:     'border-color 0.15s, box-shadow 0.15s',
         cursor:         'default',
         boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.6)',
@@ -45,7 +46,7 @@ function SkillTile({ name, logo }) {
         />
       ) : (
         <span style={{
-          fontSize:   '9px',
+          fontSize:   mobile ? '8px' : '9px',
           fontWeight: 700,
           color:      C.textSub,
           textAlign:  'center',
@@ -62,6 +63,7 @@ function SkillTile({ name, logo }) {
 /* ── Main ────────────────────────────────────────────────────────────── */
 function SkillsModal({ isOpen, onClose }) {
   const [page, setPage] = useState(0);
+  const mobile  = useMobile();
   const total   = skills.length;
   const current = skills[page];
 
@@ -77,23 +79,23 @@ function SkillsModal({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Barracks — Skills">
-      <div style={{ padding: '14px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px', background: C.bg }}>
+      <div style={{ padding: mobile ? '10px 10px 14px' : '14px 16px 20px', display: 'flex', flexDirection: 'column', gap: mobile ? '8px' : '12px', background: C.bg }}>
 
         {/* category tabs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: mobile ? '4px' : '6px' }}>
           {skills.map((s, i) => (
             <button
               key={s.category}
               onClick={() => setPage(i)}
               style={{
-                padding:       '6px 8px',
+                padding:       mobile ? '5px 6px' : '6px 8px',
                 borderRadius:  '8px',
                 border:        `2px solid ${i === page ? C.gold : C.bgDark}`,
                 background:    i === page
                   ? `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`
                   : C.bgPanel,
                 color:         i === page ? '#FFFFFF' : C.textSub,
-                fontSize:      '10px',
+                fontSize:      mobile ? '9px' : '10px',
                 fontWeight:    800,
                 cursor:        'pointer',
                 transition:    'all 0.15s',
@@ -127,15 +129,15 @@ function SkillsModal({ isOpen, onClose }) {
             flex:           1,
             display:        'flex',
             flexWrap:       'wrap',
-            gap:            '10px',
+            gap:            mobile ? '7px' : '10px',
             justifyContent: 'center',
-            height:         '180px',
+            height:         mobile ? '150px' : '180px',
             alignContent:   'center',
-            padding:        '8px 0',
+            padding:        '6px 0',
             overflow:       'hidden',
           }}>
             {current.items.map(({ name, logo }) => (
-              <SkillTile key={name} name={name} logo={logo} />
+              <SkillTile key={name} name={name} logo={logo} mobile={mobile} />
             ))}
           </div>
           <ModalArrow dir="right" disabled={page === total - 1} onClick={() => setPage(p => p + 1)} />
@@ -165,6 +167,6 @@ function SkillsModal({ isOpen, onClose }) {
 }
 
 SkillsModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
-SkillTile.propTypes   = { name: PropTypes.string.isRequired, logo: PropTypes.string };
+SkillTile.propTypes   = { name: PropTypes.string.isRequired, logo: PropTypes.string, mobile: PropTypes.bool };
 
 export default SkillsModal;

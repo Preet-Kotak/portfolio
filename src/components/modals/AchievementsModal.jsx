@@ -1,39 +1,39 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import Modal, { C } from './Modal';
+import Modal, { C, useMobile } from './Modal';
 import ModalArrow from './ModalArrow';
 import PdfLightbox from './PdfLightbox';
 import achievements from '../../data/achievements';
 
 /* ── Achievement card ───────────────────────────────────────────────── */
-function AchievementCard({ achievement, onViewCert }) {
+function AchievementCard({ achievement, onViewCert, mobile }) {
   const { title, subtitle, icon, description, color, href, certificate, placeholder } = achievement;
 
   return (
     <div style={{
       borderRadius: '10px',
-      padding:      '18px 16px',
+      padding:      mobile ? '12px 12px' : '18px 16px',
       background:   placeholder ? C.bg : C.header,
-      border:       `1px solid ${placeholder ? C.bgDark : C.bgDark}`,
+      border:       `1px solid ${C.bgDark}`,
       boxShadow:    placeholder ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.7)',
       opacity:      placeholder ? 0.5 : 1,
       display:      'flex',
-      gap:          '14px',
+      gap:          mobile ? '10px' : '14px',
       alignItems:   'flex-start',
-      minHeight:    '120px',
+      minHeight:    mobile ? '90px' : '120px',
     }}>
 
       {/* icon bubble */}
       <div style={{
-        width:          '48px',
-        height:         '48px',
+        width:          mobile ? '38px' : '48px',
+        height:         mobile ? '38px' : '48px',
         borderRadius:   '50%',
         background:     placeholder ? C.bgPanel : `${color}20`,
         border:         `2px solid ${placeholder ? C.bgDark : color + '66'}`,
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
-        fontSize:       '20px',
+        fontSize:       mobile ? '16px' : '20px',
         flexShrink:     0,
       }}>
         {icon}
@@ -41,8 +41,8 @@ function AchievementCard({ achievement, onViewCert }) {
 
       {/* text */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: placeholder ? C.textMuted : C.text }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: mobile ? '12px' : '14px', fontWeight: 800, color: placeholder ? C.textMuted : C.text }}>
             {title}
           </span>
           <span style={{
@@ -57,26 +57,26 @@ function AchievementCard({ achievement, onViewCert }) {
         </div>
 
         <div style={{
-          fontSize:     '11.5px',
-          lineHeight:   '1.6',
+          fontSize:     mobile ? '10.5px' : '11.5px',
+          lineHeight:   '1.55',
           color:        C.textSub,
-          marginBottom: (!placeholder && (href || certificate)) ? '12px' : 0,
+          marginBottom: (!placeholder && (href || certificate)) ? (mobile ? '8px' : '12px') : 0,
         }}>
           {description}
         </div>
 
         {!placeholder && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {href && (
               <a
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  padding:        '4px 12px',
+                  padding:        mobile ? '3px 10px' : '4px 12px',
                   borderRadius:   '8px',
                   textDecoration: 'none',
-                  fontSize:       '10px',
+                  fontSize:       mobile ? '9px' : '10px',
                   fontWeight:     800,
                   letterSpacing:  '0.06em',
                   textTransform:  'uppercase',
@@ -85,7 +85,6 @@ function AchievementCard({ achievement, onViewCert }) {
                   boxShadow:      `0 3px 0 ${C.btnGreenShadow}`,
                   color:          '#FFFFFF',
                   cursor:         'pointer',
-                  minWidth:       '130px',
                   textAlign:      'center',
                   textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
                 }}
@@ -99,9 +98,9 @@ function AchievementCard({ achievement, onViewCert }) {
               <button
                 onClick={() => onViewCert(certificate.pdfPath)}
                 style={{
-                  padding:        '4px 12px',
+                  padding:        mobile ? '3px 10px' : '4px 12px',
                   borderRadius:   '8px',
-                  fontSize:       '10px',
+                  fontSize:       mobile ? '9px' : '10px',
                   fontWeight:     800,
                   letterSpacing:  '0.06em',
                   textTransform:  'uppercase',
@@ -109,15 +108,13 @@ function AchievementCard({ achievement, onViewCert }) {
                   border:         `2px solid ${C.bgDark}`,
                   color:          C.textSub,
                   cursor:         'pointer',
-                  transition:     'background 0.1s',
-                  minWidth:       '130px',
                   textAlign:      'center',
                   boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.5)',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = C.bgDark; }}
                 onMouseLeave={e => { e.currentTarget.style.background = C.bgPanel; }}
               >
-                📄 View Certificate
+                📄 Certificate
               </button>
             )}
           </div>
@@ -131,9 +128,9 @@ function AchievementCard({ achievement, onViewCert }) {
 function AchievementsModal({ isOpen, onClose }) {
   const [page,      setPage]      = useState(0);
   const [activePdf, setActivePdf] = useState(null);
-  const total = achievements.length;
+  const mobile = useMobile();
+  const total  = achievements.length;
 
-  // Arrow key navigation
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => {
@@ -147,18 +144,16 @@ function AchievementsModal({ isOpen, onClose }) {
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} title="Laboratory — Achievements">
-        <div style={{ padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: '10px', background: C.bg }}>
+        <div style={{ padding: mobile ? '10px 10px 14px' : '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: mobile ? '8px' : '10px', background: C.bg }}>
 
-          {/* arrows + card */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <ModalArrow dir="left"  disabled={page === 0}         onClick={() => setPage(p => p - 1)} />
             <div style={{ flex: 1 }}>
-              <AchievementCard achievement={achievements[page]} onViewCert={setActivePdf} />
+              <AchievementCard achievement={achievements[page]} onViewCert={setActivePdf} mobile={mobile} />
             </div>
             <ModalArrow dir="right" disabled={page === total - 1} onClick={() => setPage(p => p + 1)} />
           </div>
 
-          {/* dot indicators */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
             {achievements.map((_, i) => (
               <div
@@ -186,7 +181,7 @@ function AchievementsModal({ isOpen, onClose }) {
   );
 }
 
-AchievementsModal.propTypes  = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
-AchievementCard.propTypes    = { achievement: PropTypes.object.isRequired, onViewCert: PropTypes.func.isRequired };
+AchievementsModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
+AchievementCard.propTypes   = { achievement: PropTypes.object.isRequired, onViewCert: PropTypes.func.isRequired, mobile: PropTypes.bool };
 
 export default AchievementsModal;

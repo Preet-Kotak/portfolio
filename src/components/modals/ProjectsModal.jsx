@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import Modal, { C } from './Modal';
+import Modal, { C, useMobile } from './Modal';
 import ModalArrow from './ModalArrow';
 import projects from '../../data/projects';
 
@@ -29,14 +29,14 @@ function StatusBadge({ status }) {
 }
 
 /* ── Tech tag ───────────────────────────────────────────────────────── */
-function TechTag({ name }) {
+function TechTag({ name, mobile }) {
   return (
     <span style={{
-      padding:      '2px 7px',
+      padding:      mobile ? '1px 5px' : '2px 7px',
       borderRadius: '4px',
       background:   C.bgPanel,
       border:       `1px solid ${C.bgDark}`,
-      fontSize:     '10px',
+      fontSize:     mobile ? '9px' : '10px',
       color:        C.textSub,
       fontWeight:   600,
     }}>
@@ -46,7 +46,7 @@ function TechTag({ name }) {
 }
 
 /* ── Project image ──────────────────────────────────────────────────── */
-function ProjectImage({ project }) {
+function ProjectImage({ project, mobile }) {
   const [imgError, setImgError] = useState(false);
   const clickUrl = project.liveUrl ?? project.links[0]?.href ?? null;
   const hasImage = project.image && !imgError;
@@ -55,7 +55,7 @@ function ProjectImage({ project }) {
     <div
       onClick={() => clickUrl && window.open(clickUrl, '_blank', 'noopener,noreferrer')}
       style={{
-        height:         '140px',
+        height:         mobile ? '100px' : '140px',
         overflow:       'hidden',
         flexShrink:     0,
         cursor:         clickUrl ? 'pointer' : 'default',
@@ -104,7 +104,7 @@ function ProjectImage({ project }) {
 }
 
 /* ── Project card ───────────────────────────────────────────────────── */
-function ProjectCard({ project }) {
+function ProjectCard({ project, mobile }) {
   return (
     <div style={{
       borderRadius: '10px',
@@ -113,36 +113,36 @@ function ProjectCard({ project }) {
       border:       `1px solid ${C.bgDark}`,
       boxShadow:    'inset 0 1px 0 rgba(255,255,255,0.7)',
     }}>
-      <ProjectImage project={project} />
+      <ProjectImage project={project} mobile={mobile} />
 
-      <div style={{ padding: '12px 14px 14px' }}>
+      <div style={{ padding: mobile ? '8px 10px 10px' : '12px 14px 14px' }}>
 
         {/* title + badge */}
         <div style={{
           display:        'flex',
           alignItems:     'flex-start',
           gap:            '8px',
-          marginBottom:   '6px',
+          marginBottom:   '5px',
           justifyContent: 'space-between',
         }}>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: C.text, lineHeight: 1.2 }}>
+          <div style={{ fontSize: mobile ? '12px' : '13px', fontWeight: 800, color: C.text, lineHeight: 1.2 }}>
             {project.title}
           </div>
           <StatusBadge status={project.status} />
         </div>
 
         {/* description */}
-        <div style={{ fontSize: '11.5px', lineHeight: '1.65', color: C.textSub, marginBottom: '10px' }}>
+        <div style={{ fontSize: mobile ? '10.5px' : '11.5px', lineHeight: '1.6', color: C.textSub, marginBottom: mobile ? '7px' : '10px' }}>
           {project.description}
         </div>
 
         {/* tech tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
-          {project.tech.map((t) => <TechTag key={t} name={t} />)}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: mobile ? '8px' : '12px' }}>
+          {project.tech.map((t) => <TechTag key={t} name={t} mobile={mobile} />)}
         </div>
 
         {/* links */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {project.links.map((link) => (
             <a
               key={link.label}
@@ -150,10 +150,10 @@ function ProjectCard({ project }) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                padding:        '5px 14px',
+                padding:        mobile ? '4px 10px' : '5px 14px',
                 borderRadius:   '8px',
                 textDecoration: 'none',
-                fontSize:       '10px',
+                fontSize:       mobile ? '9px' : '10px',
                 fontWeight:     800,
                 letterSpacing:  '0.06em',
                 textTransform:  'uppercase',
@@ -162,7 +162,6 @@ function ProjectCard({ project }) {
                 boxShadow:      `0 3px 0 ${C.btnGreenShadow}`,
                 color:          '#FFFFFF',
                 cursor:         'pointer',
-                transition:     'filter 0.1s',
                 textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
               }}
               onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; }}
@@ -179,10 +178,10 @@ function ProjectCard({ project }) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                padding:        '5px 14px',
+                padding:        mobile ? '4px 10px' : '5px 14px',
                 borderRadius:   '8px',
                 textDecoration: 'none',
-                fontSize:       '10px',
+                fontSize:       mobile ? '9px' : '10px',
                 fontWeight:     800,
                 letterSpacing:  '0.06em',
                 textTransform:  'uppercase',
@@ -190,7 +189,6 @@ function ProjectCard({ project }) {
                 border:         `2px solid ${C.bgDark}`,
                 color:          C.textSub,
                 cursor:         'pointer',
-                transition:     'background 0.1s',
                 boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.5)',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = C.bgDark; }}
@@ -209,6 +207,7 @@ function ProjectCard({ project }) {
 /* ── Main ────────────────────────────────────────────────────────────── */
 function ProjectsModal({ isOpen, onClose }) {
   const [page, setPage] = useState(0);
+  const mobile          = useMobile();
   const total           = projects.length;
 
   useEffect(() => {
@@ -228,7 +227,7 @@ function ProjectsModal({ isOpen, onClose }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <ModalArrow dir="left"  disabled={page === 0}         onClick={() => setPage(p => p - 1)} />
           <div style={{ flex: 1 }}>
-            <ProjectCard project={projects[page]} />
+            <ProjectCard project={projects[page]} mobile={mobile} />
           </div>
           <ModalArrow dir="right" disabled={page === total - 1} onClick={() => setPage(p => p + 1)} />
         </div>
@@ -256,9 +255,9 @@ function ProjectsModal({ isOpen, onClose }) {
 }
 
 ProjectsModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
-ProjectCard.propTypes   = { project: PropTypes.object.isRequired };
-ProjectImage.propTypes  = { project: PropTypes.object.isRequired };
+ProjectCard.propTypes   = { project: PropTypes.object.isRequired, mobile: PropTypes.bool };
+ProjectImage.propTypes  = { project: PropTypes.object.isRequired, mobile: PropTypes.bool };
 StatusBadge.propTypes   = { status: PropTypes.string.isRequired };
-TechTag.propTypes       = { name: PropTypes.string.isRequired };
+TechTag.propTypes       = { name: PropTypes.string.isRequired, mobile: PropTypes.bool };
 
 export default ProjectsModal;

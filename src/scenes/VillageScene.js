@@ -57,6 +57,56 @@ export default class VillageScene extends Phaser.Scene {
       this.input.enabled          = !isOpen;
     });
 
+    // Tutorial: return screen position of a building by type
+    this.game.events.on('getTutorialBuildingPos', (buildingType, callback) => {
+      const spr = this.buildings.find(b => b.getData('modalKey') === buildingType ||
+        b.texture?.key === buildingType);
+      if (!spr || !callback) return;
+
+      const cam    = this.cameras.main;
+      const dpr    = this._dpr ?? 1;
+      const canvas = this.game.canvas;
+
+      // getBoundingClientRect gives the canvas position in CSS viewport coords.
+      // rect.width is the CSS width of the canvas (= cssW).
+      // The Phaser world runs at physical pixels (cssW * dpr), so worldView is
+      // also in physical pixels.
+      // Fraction of the way across the visible world → multiply by CSS canvas size.
+      const rect = canvas ? canvas.getBoundingClientRect() : { left: 0, top: 0, width: this.scale.width / dpr, height: this.scale.height / dpr };
+
+      const wv  = cam.worldView; // visible world rect in physical-pixel world coords
+      const fracX = (spr.x - wv.x) / wv.width;
+      const fracY = (spr.y - wv.y) / wv.height;
+
+      const screenX = rect.left + fracX * rect.width;
+      const screenY = rect.top  + fracY * rect.height;
+
+      // Radius: sprite display width in physical px → CSS px via rect scale
+      const radiusCss = (spr.displayWidth / wv.width) * rect.width * 0.65;
+
+      callback({ x: screenX, y: screenY, r: Math.max(radiusCss, 40) });
+    });
+
+    // Tutorial: smoothly pan camera to center a building above the tooltip
+    this.game.events.on('tutorialPanToBuilding', (buildingType, isMobile) => {
+      const spr = this.buildings.find(b => b.getData('modalKey') === buildingType ||
+        b.texture?.key === buildingType);
+      if (!spr) return;
+
+      const cam  = this.cameras.main;
+      const dpr  = this._dpr ?? 1;
+      void dpr;
+
+      // Shift the pan target downward so the building renders in the upper portion
+      // of the screen, clear of the tooltip at the bottom.
+      // Mobile tooltip is very small and pinned to the bottom edge, so a smaller
+      // offset is enough. Desktop tooltip sits at ~15vh so needs more room.
+      const visibleWorldH = cam.worldView.height;
+      const offsetY = visibleWorldH * (isMobile ? 0.12 : 0.18);
+
+      this.cameras.main.pan(spr.x, spr.y + offsetY, 500, 'Power2');
+    });
+
     this.game.events.on('canvasResized', (nCssW, nCssH) => {
       this._isMobile = window.innerWidth < 1024;
       this._rebuildGrid(nCssW, nCssH);

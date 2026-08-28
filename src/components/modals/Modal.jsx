@@ -1,5 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+
+// Shared hook — avoids each modal duplicating resize logic
+export function useMobile() {
+  const [mobile, setMobile] = useState(() => window.innerWidth < 1024);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
 
 // CoC UI color palette — warm grey/beige light theme matching in-game modals
 export const C = {
@@ -46,8 +57,11 @@ export const C = {
 
 /**
  * Base modal shell — CoC light warm-grey theme.
+ * On mobile (<1024px) everything is scaled down to leave breathing room.
  */
 function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children }) {
+  const mobile = useMobile();
+
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -67,13 +81,13 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
         display:         'flex',
         alignItems:      'center',
         justifyContent:  'center',
-        padding:         '16px',
+        padding:         mobile ? '8px' : '16px',
         backgroundColor: 'rgba(0,0,0,0.55)',
       }}
     >
       {/* wooden outer rim */}
       <div style={{
-        width:        width,
+        width:        mobile ? 'min(98vw, 400px)' : width,
         borderRadius: '14px',
         padding:      '3px',
         background:   `linear-gradient(180deg, ${C.rimLight} 0%, ${C.rim} 60%, #5A3E20 100%)`,
@@ -91,7 +105,7 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
             overflow:     'hidden',
             background:   C.bg,
             fontFamily:   '"Segoe UI", system-ui, -apple-system, sans-serif',
-            maxHeight:    'calc(100dvh - 48px)',
+            maxHeight:    mobile ? 'calc(100dvh - 24px)' : 'calc(100dvh - 48px)',
             display:      'flex',
             flexDirection:'column',
           }}>
@@ -100,7 +114,7 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
             <div style={{
               background:     C.header,
               borderBottom:   `2px solid ${C.bgDark}`,
-              padding:        '10px 14px 10px',
+              padding:        mobile ? '7px 10px' : '10px 14px',
               display:        'flex',
               alignItems:     'center',
               justifyContent: 'space-between',
@@ -108,11 +122,11 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
               flexShrink:     0,
             }}>
               {/* spacer to balance close button */}
-              <div style={{ width: '30px', flexShrink: 0 }} />
+              <div style={{ width: mobile ? '26px' : '30px', flexShrink: 0 }} />
 
               <span style={{
                 color:         C.text,
-                fontSize:      '13px',
+                fontSize:      mobile ? '11px' : '13px',
                 fontWeight:    900,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
@@ -122,19 +136,19 @@ function Modal({ isOpen, onClose, title, width = 'min(94vw, 440px)', children })
                 {title}
               </span>
 
-              {/* Red X close button — CoC style */}
+              {/* Red X close button */}
               <button
                 onClick={onClose}
                 aria-label="Close"
                 style={{
-                  width:          '30px',
-                  height:         '30px',
-                  borderRadius:   '8px',
+                  width:          mobile ? '26px' : '30px',
+                  height:         mobile ? '26px' : '30px',
+                  borderRadius:   '7px',
                   border:         `2px solid #AA1111`,
                   background:     `linear-gradient(180deg, ${C.btnRedHi} 0%, ${C.btnRed} 55%, ${C.btnRedShadow} 100%)`,
                   boxShadow:      `0 3px 0 #550000, 0 4px 8px rgba(0,0,0,0.4)`,
                   color:          '#FFFFFF',
-                  fontSize:       '13px',
+                  fontSize:       mobile ? '11px' : '13px',
                   cursor:         'pointer',
                   display:        'flex',
                   alignItems:     'center',

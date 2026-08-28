@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import Modal, { C } from './Modal';
+import Modal, { C, useMobile } from './Modal';
 import ModalArrow from './ModalArrow';
 import about from '../../data/about';
 
@@ -37,16 +37,16 @@ function HexAvatar({ size = 80 }) {
 }
 
 /* ── Bio card ───────────────────────────────────────────────────────── */
-function BioCard({ title, lines }) {
+function BioCard({ title, lines, mobile }) {
   return (
     <div style={{
       flex:         1,
       borderRadius: '10px',
-      padding:      '14px 15px',
+      padding:      mobile ? '10px 11px' : '14px 15px',
       background:   C.bgPanel,
       border:       `1px solid ${C.bgDark}`,
       boxShadow:    'inset 0 2px 4px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.5)',
-      minHeight:    '90px',
+      minHeight:    mobile ? '70px' : '90px',
     }}>
       <div style={{
         fontSize:      '9px',
@@ -54,18 +54,18 @@ function BioCard({ title, lines }) {
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
         color:         C.textGold,
-        marginBottom:  '7px',
+        marginBottom:  '5px',
         borderBottom:  `1px solid ${C.bgDark}`,
-        paddingBottom: '5px',
+        paddingBottom: '4px',
       }}>
         {title}
       </div>
       {lines.map((line, i) => (
         <div key={i} style={{
-          fontSize:     '11.5px',
-          lineHeight:   '1.7',
+          fontSize:     mobile ? '10.5px' : '11.5px',
+          lineHeight:   '1.6',
           color:        C.textSub,
-          marginBottom: i < lines.length - 1 ? '4px' : 0,
+          marginBottom: i < lines.length - 1 ? '3px' : 0,
         }}>
           {line}
         </div>
@@ -75,7 +75,7 @@ function BioCard({ title, lines }) {
 }
 
 /* ── Green action button ─────────────────────────────────────────────── */
-function ActionBtn({ label, href, external }) {
+function ActionBtn({ label, href, external, mobile }) {
   return (
     <a
       href={href}
@@ -84,13 +84,13 @@ function ActionBtn({ label, href, external }) {
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
-        padding:        '8px 20px',
+        padding:        mobile ? '6px 14px' : '8px 20px',
         borderRadius:   '10px',
         textDecoration: 'none',
         background:     `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 55%, ${C.btnGreenShadow} 100%)`,
         border:         `2px solid ${C.btnGreenBorder}`,
         boxShadow:      `0 4px 0 ${C.btnGreenShadow}, 0 6px 12px rgba(0,0,0,0.25)`,
-        fontSize:       '11px',
+        fontSize:       mobile ? '10px' : '11px',
         fontWeight:     800,
         color:          '#FFFFFF',
         letterSpacing:  '0.05em',
@@ -98,7 +98,7 @@ function ActionBtn({ label, href, external }) {
         userSelect:     'none',
         transition:     'all 0.08s',
         textTransform:  'uppercase',
-        minWidth:       '100px',
+        minWidth:       mobile ? '80px' : '100px',
         textShadow:     '0 1px 2px rgba(0,0,0,0.4)',
       }}
       onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; }}
@@ -124,6 +124,7 @@ function ActionBtn({ label, href, external }) {
 /* ── Main ────────────────────────────────────────────────────────────── */
 function AboutModal({ isOpen, onClose }) {
   const [cardPage, setCardPage] = useState(0);
+  const mobile = useMobile();
   const cards = about.cards;
   const total  = cards.length;
 
@@ -139,19 +140,19 @@ function AboutModal({ isOpen, onClose }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Player Profile">
-      <div style={{ padding: '22px 18px 26px', display: 'flex', flexDirection: 'column', gap: '20px', background: C.bg }}>
+      <div style={{ padding: mobile ? '12px 12px 16px' : '22px 18px 26px', display: 'flex', flexDirection: 'column', gap: mobile ? '12px' : '20px', background: C.bg }}>
 
         {/* avatar + name row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <HexAvatar size={92} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? '10px' : '16px' }}>
+          <HexAvatar size={mobile ? 64 : 92} />
           <div style={{ flex: 1 }}>
             <div style={{
-              fontSize:      'clamp(18px, 4vw, 22px)',
+              fontSize:      mobile ? 'clamp(15px,4vw,18px)' : 'clamp(18px, 4vw, 22px)',
               fontWeight:    900,
               color:         C.text,
               letterSpacing: '0.02em',
               lineHeight:    1.1,
-              marginBottom:  '6px',
+              marginBottom:  '5px',
             }}>
               {about.name}
             </div>
@@ -161,18 +162,18 @@ function AboutModal({ isOpen, onClose }) {
               background:    `linear-gradient(180deg, ${C.btnGreenHi} 0%, ${C.btnGreen} 100%)`,
               border:        `1px solid ${C.btnGreenBorder}`,
               borderRadius:  '6px',
-              padding:       '3px 10px',
-              fontSize:      '10px',
+              padding:       mobile ? '2px 8px' : '3px 10px',
+              fontSize:      mobile ? '9px' : '10px',
               fontWeight:    800,
               color:         '#FFFFFF',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              marginBottom:  '6px',
+              marginBottom:  '4px',
               textShadow:    '0 1px 2px rgba(0,0,0,0.4)',
             }}>
               {about.tagline}
             </div>
-            <div style={{ fontSize: '11px', color: C.textMuted, lineHeight: '1.5' }}>
+            <div style={{ fontSize: mobile ? '10px' : '11px', color: C.textMuted, lineHeight: '1.5' }}>
               {about.email}
             </div>
           </div>
@@ -181,12 +182,12 @@ function AboutModal({ isOpen, onClose }) {
         {/* bio card — paginated */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <ModalArrow dir="left"  disabled={cardPage === 0}         onClick={() => setCardPage(p => p - 1)} />
-          <BioCard {...cards[cardPage]} />
+          <BioCard {...cards[cardPage]} mobile={mobile} />
           <ModalArrow dir="right" disabled={cardPage === total - 1} onClick={() => setCardPage(p => p + 1)} />
         </div>
 
         {/* dot indicators */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '-8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '-6px' }}>
           {cards.map((_, i) => (
             <div
               key={i}
@@ -206,7 +207,7 @@ function AboutModal({ isOpen, onClose }) {
         {/* action buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
           {about.links.map((l) => (
-            <ActionBtn key={l.label} label={l.label} href={l.href} external={l.external} />
+            <ActionBtn key={l.label} label={l.label} href={l.href} external={l.external} mobile={mobile} />
           ))}
         </div>
 
@@ -217,7 +218,7 @@ function AboutModal({ isOpen, onClose }) {
 
 AboutModal.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
 HexAvatar.propTypes  = { size: PropTypes.number };
-BioCard.propTypes    = { title: PropTypes.string.isRequired, lines: PropTypes.arrayOf(PropTypes.string).isRequired };
-ActionBtn.propTypes  = { label: PropTypes.string.isRequired, href: PropTypes.string.isRequired, external: PropTypes.bool.isRequired };
+BioCard.propTypes    = { title: PropTypes.string.isRequired, lines: PropTypes.arrayOf(PropTypes.string).isRequired, mobile: PropTypes.bool };
+ActionBtn.propTypes  = { label: PropTypes.string.isRequired, href: PropTypes.string.isRequired, external: PropTypes.bool.isRequired, mobile: PropTypes.bool };
 
 export default AboutModal;

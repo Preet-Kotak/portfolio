@@ -73,6 +73,28 @@ canvas {
   }
 }
 
+/* ── Tutorial animations ──────────────────────────────────────── */
+
+@keyframes tutFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes tutModalIn {
+  from { opacity: 0; transform: scale(0.88) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+@keyframes tutTooltipIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+}
+
+@keyframes tutRingPulse {
+  0%, 100% { box-shadow: 0 0 0 4px #F0C040, 0 0 0 8px rgba(240,192,64,0.4),  0 0 40px 16px rgba(240,192,64,0.25); }
+  50%       { box-shadow: 0 0 0 6px #F0C040, 0 0 0 14px rgba(240,192,64,0.6), 0 0 60px 24px rgba(240,192,64,0.45); }
+}
+
 /* CvButton top offset — must match trophy btn size + gap */
 .hud-cv-top {
   top: 50px !important;  /* 10px + 32px + 8px gap */

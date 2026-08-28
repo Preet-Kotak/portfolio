@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PhaserGame        from './components/phaser/PhaserGame';
 import OrientationPrompt from './components/OrientationPrompt';
 import AboutModal        from './components/modals/AboutModal';
@@ -11,6 +11,8 @@ import TrophyButton      from './components/TrophyButton';
 import CvButton          from './components/CvButton';
 import ChatButton        from './components/chat/ChatButton';
 import ChatPanel         from './components/chat/ChatPanel';
+import TutorialOverlay   from './components/tutorial/TutorialOverlay';
+import useTutorial       from './hooks/useTutorial';
 
 const MODAL_MAP = {
   about:      'about',
@@ -24,6 +26,9 @@ function App() {
   const [cfRating,    setCfRating]    = useState(null);
   const [resumeOpen,  setResumeOpen]  = useState(false);
   const [chatOpen,    setChatOpen]    = useState(false);
+  const phaserGameRef = useRef(null);
+
+  const { step, isActive, advance, skip, onModalClosed } = useTutorial();
 
   useEffect(() => {
     fetch(`https://codeforces.com/api/user.info?handles=${CF_HANDLE}`)
@@ -43,8 +48,10 @@ function App() {
   }, []);
 
   const handleCloseModal = useCallback(() => {
+    // Let tutorial know which modal just closed so it can advance the step
+    onModalClosed(activeModal);
     setActiveModal(null);
-  }, []);
+  }, [activeModal, onModalClosed]);
 
   // Called by ChatPanel quick-actions / commands to open modals
   const handleChatOpenModal = useCallback((key) => {
@@ -59,13 +66,19 @@ function App() {
     <div style={{ width: '100%', overflowX: 'hidden' }}>
       <OrientationPrompt />
       <div style={{ position: 'relative', width: '100%' }}>
-        <PhaserGame onBuildingClick={handleBuildingClick} modalOpen={activeModal !== null} />
+        <PhaserGame onBuildingClick={handleBuildingClick} modalOpen={activeModal !== null} phaserGameRef={phaserGameRef} />
 
-        <TrophyButton cfRating={cfRating} onClick={() => setActiveModal('trophy')} />
+        <div id="tutorial-trophy-btn">
+          <TrophyButton cfRating={cfRating} onClick={() => setActiveModal('trophy')} />
+        </div>
         <CvButton onClick={() => setResumeOpen(true)} />
 
         {/* Chat toggle button — only show open button when closed */}
-        {!chatOpen && <ChatButton onClick={() => setChatOpen(true)} />}
+        {!chatOpen && (
+          <div id="tutorial-chat-btn">
+            <ChatButton onClick={() => setChatOpen(true)} />
+          </div>
+        )}
 
         {/* Chat panel — slides in from left */}
         <ChatPanel
@@ -83,6 +96,16 @@ function App() {
         <ProjectsModal     isOpen={activeModal === 'builderhut'} onClose={handleCloseModal} />
         <AchievementsModal isOpen={activeModal === 'laboratory'} onClose={handleCloseModal} />
         <TrophyRoomModal   isOpen={activeModal === 'trophy'}     onClose={handleCloseModal} />
+
+        {/* Tutorial overlay — rendered on top of everything, hidden while a modal is open */}
+        {isActive && !activeModal && (
+          <TutorialOverlay
+            step={step}
+            advance={advance}
+            skip={skip}
+            gameRef={phaserGameRef}
+          />
+        )}
       </div>
     </div>
   );
