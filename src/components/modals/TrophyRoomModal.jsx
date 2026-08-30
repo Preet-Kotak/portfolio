@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Modal, { C } from './Modal';
 import ModalArrow from './ModalArrow';
+import about from '../../data/about';
 
 // ── Handles ───────────────────────────────────────────────────────────
-const CF_HANDLE   = 'Preet-Kotak';
-const LC_USERNAME = 'Preet-Kotak';
-const GH_USERNAME = 'Preet-Kotak';
+const CF_HANDLE   = about.cfHandle;
+const LC_USERNAME = about.lcUsername;
+const GH_USERNAME = about.ghUsername;
 
 const CF_URL = `https://codeforces.com/profile/${CF_HANDLE}`;
 const LC_URL = `https://leetcode.com/u/${LC_USERNAME}`;
@@ -264,9 +265,9 @@ function TrophyRoomModal({ isOpen, onClose }) {
       .finally(() => setLoads(l => ({ ...l, gh: false })));
   }, []);
 
-  // Fetch on open
+  // Fetch on open — triggers async network calls (external system), not a direct setState
   useEffect(() => {
-    if (isOpen) fetchAll();
+    if (isOpen) fetchAll(); // eslint-disable-line react-hooks/set-state-in-effect
   }, [isOpen, fetchAll]);
 
   // Arrow key nav
@@ -350,4 +351,3 @@ LeetCodeBody.propTypes   = { data: PropTypes.object.isRequired };
 GitHubBody.propTypes     = { data: PropTypes.object.isRequired };
 
 export default TrophyRoomModal;
-export { CF_HANDLE };

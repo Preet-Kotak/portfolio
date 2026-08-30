@@ -165,7 +165,7 @@ const OVERLAY_STYLES = `
   .pro-nav-overlay .pro-villageBtn:hover { color: #fff; background: var(--gold); }
 `;
 
-export default function ProNav({ onBack, onSwitchToGame }) {
+export default function ProNav({ onSwitchToGame }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   /* Lock body scroll while menu is open — prevents page-behind glitch on iOS */
@@ -266,6 +266,5 @@ export default function ProNav({ onBack, onSwitchToGame }) {
 }
 
 ProNav.propTypes = {
-  onBack:         PropTypes.func,
   onSwitchToGame: PropTypes.func,
 };

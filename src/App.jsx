@@ -1,25 +1,28 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { initAnalytics, trackPageView, trackEvent } from './utils/analytics';
+import about from './data/about';
 import PhaserGame        from './components/phaser/PhaserGame';
 import LandingPage       from './components/LandingPage';
 import IntroScreen       from './components/IntroScreen';
-import ProfessionalPage  from './components/professional/ProfessionalPage';
-import AboutModal        from './components/modals/AboutModal';
-import SkillsModal       from './components/modals/SkillsModal';
-import ProjectsModal     from './components/modals/ProjectsModal';
-import AchievementsModal from './components/modals/AchievementsModal';
-import TrophyRoomModal, { CF_HANDLE } from './components/modals/TrophyRoomModal';
-import ContactFormModal from './components/modals/ContactFormModal';
-import PdfLightbox       from './components/modals/PdfLightbox';
 import TrophyButton      from './components/TrophyButton';
 import CvButton          from './components/CvButton';
 import MusicButton       from './components/MusicButton';
 import ChatButton        from './components/chat/ChatButton';
 import ChatPanel         from './components/chat/ChatPanel';
-import TutorialOverlay   from './components/tutorial/TutorialOverlay';
 import OrientationPrompt from './components/OrientationPrompt';
 import useTutorial       from './hooks/useTutorial';
 import useGameAudio      from './hooks/useGameAudio';
+
+// Lazy-loaded heavy components
+const ProfessionalPage  = lazy(() => import('./components/professional/ProfessionalPage'));
+const AboutModal        = lazy(() => import('./components/modals/AboutModal'));
+const SkillsModal       = lazy(() => import('./components/modals/SkillsModal'));
+const ProjectsModal     = lazy(() => import('./components/modals/ProjectsModal'));
+const AchievementsModal = lazy(() => import('./components/modals/AchievementsModal'));
+const TrophyRoomModal   = lazy(() => import('./components/modals/TrophyRoomModal'));
+const ContactFormModal  = lazy(() => import('./components/modals/ContactFormModal'));
+const PdfLightbox       = lazy(() => import('./components/modals/PdfLightbox'));
+const TutorialOverlay   = lazy(() => import('./components/tutorial/TutorialOverlay'));
 
 // Always show landing on fresh page load — never skip it via localStorage.
 // localStorage is only used to remember the choice within the same session
@@ -72,6 +75,11 @@ function App() {
     setVersion(playingIntro ? 'intro' : 'game');
   }, [startGameMusic, setVersion]);
 
+  const handleChooseGameFromPro = useCallback(() => {
+    startGameMusic();
+    setVersion('intro');
+  }, [startGameMusic, setVersion]);
+
   const handleChoosePro = useCallback(() => {
     setVersion('pro');
   }, [setVersion]);
@@ -90,7 +98,7 @@ function App() {
   const { step, isActive, advance, skip, onModalClosed } = useTutorial();
 
   useEffect(() => {
-    fetch(`https://codeforces.com/api/user.info?handles=${CF_HANDLE}`)
+    fetch(`https://codeforces.com/api/user.info?handles=${about.cfHandle}`)
       .then(r => r.json())
       .then(json => {
         if (json.status === 'OK') {
@@ -145,10 +153,12 @@ function App() {
 
       {/* ── Professional page (Phase 11) ─────────────────────── */}
       {version === 'pro' && (
-        <ProfessionalPage
-          onBack={handleChooseGame}
-          onSwitchToGame={handleChooseGame}
-        />
+        <Suspense fallback={null}>
+          <ProfessionalPage
+            onBack={handleChooseGameFromPro}
+            onSwitchToGame={handleChooseGameFromPro}
+          />
+        </Suspense>
       )}
 
       {/* ── Gamified village (existing CoC experience) ─────────── */}
@@ -234,23 +244,30 @@ function App() {
           />
 
           {resumeOpen && (
-            <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => { playModalClose(); setResumeOpen(false); }} />
+            <Suspense fallback={null}>
+              <PdfLightbox pdfPath="assets/resume.pdf" title="Resume" onClose={() => { playModalClose(); setResumeOpen(false); }} />
+            </Suspense>
           )}
 
-          <AboutModal        isOpen={activeModal === 'about'}      onClose={handleCloseModal} />
-          <SkillsModal       isOpen={activeModal === 'barracks'}   onClose={handleCloseModal} />
-          <ProjectsModal     isOpen={activeModal === 'builderhut'} onClose={handleCloseModal} />
-          <AchievementsModal isOpen={activeModal === 'laboratory'} onClose={handleCloseModal} />
-          <TrophyRoomModal   isOpen={activeModal === 'trophy'}     onClose={handleCloseModal} />
+          <Suspense fallback={null}>
+            <AboutModal        isOpen={activeModal === 'about'}      onClose={handleCloseModal} />
+            <SkillsModal       isOpen={activeModal === 'barracks'}   onClose={handleCloseModal} />
+            <ProjectsModal     isOpen={activeModal === 'builderhut'} onClose={handleCloseModal} />
+            <AchievementsModal isOpen={activeModal === 'laboratory'} onClose={handleCloseModal} />
+            <TrophyRoomModal   isOpen={activeModal === 'trophy'}     onClose={handleCloseModal} />
+            <ContactFormModal  isOpen={activeModal === 'contact'}    onClose={handleCloseModal} />
+          </Suspense>
 
           {/* Tutorial overlay — rendered on top of everything, hidden while a modal is open */}
           {isActive && !activeModal && (
-            <TutorialOverlay
-              step={step}
-              advance={advance}
-              skip={skip}
-              gameRef={phaserGameRef}
-            />
+            <Suspense fallback={null}>
+              <TutorialOverlay
+                step={step}
+                advance={advance}
+                skip={skip}
+                gameRef={phaserGameRef}
+              />
+            </Suspense>
           )}
         </div>
       )}

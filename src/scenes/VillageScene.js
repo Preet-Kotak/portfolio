@@ -10,24 +10,24 @@ export default class VillageScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('background',    'assets/environment/background.png');
-    this.load.image('townhall',      'assets/buildings/town-hall.png');
-    this.load.image('barracks',      'assets/buildings/barracks.png');
-    this.load.image('builderhut',    'assets/buildings/builder-hut.png');
-    this.load.image('laboratory',    'assets/buildings/laboratory.png');
-    this.load.image('goldmine',      'assets/buildings/gold-mine.png');
-    this.load.image('elixir',        'assets/buildings/elixir-collector.png');
-    this.load.image('cannon',        'assets/buildings/cannon.png');
-    this.load.image('archertower',   'assets/buildings/archer-tower.png');
-    this.load.image('armycamp',      'assets/buildings/army-camp.png');
-    this.load.image('wall',          'assets/buildings/wall-segment.png');
-    this.load.image('clancastle',    'assets/buildings/clan-castle.png');
-    this.load.image('airdefense',    'assets/buildings/air-defense.png');
-    this.load.image('elixirstorage', 'assets/buildings/elixir-storage.png');
-    this.load.image('goldstorage',   'assets/buildings/gold-storage.png');
-    this.load.image('mortar',        'assets/buildings/mortar.png');
-    this.load.image('wizardtower',      'assets/buildings/wizard-tower.png');
-    this.load.image('lootcart',         'assets/buildings/loot-cart.png');
+    this.load.image('background',    'assets/environment/background.webp');
+    this.load.image('townhall',      'assets/buildings/town-hall.webp');
+    this.load.image('barracks',      'assets/buildings/barracks.webp');
+    this.load.image('builderhut',    'assets/buildings/builder-hut.webp');
+    this.load.image('laboratory',    'assets/buildings/laboratory.webp');
+    this.load.image('goldmine',      'assets/buildings/gold-mine.webp');
+    this.load.image('elixir',        'assets/buildings/elixir-collector.webp');
+    this.load.image('cannon',        'assets/buildings/cannon.webp');
+    this.load.image('archertower',   'assets/buildings/archer-tower.webp');
+    this.load.image('armycamp',      'assets/buildings/army-camp.webp');
+    this.load.image('wall',          'assets/buildings/wall-segment.webp');
+    this.load.image('clancastle',    'assets/buildings/clan-castle.webp');
+    this.load.image('airdefense',    'assets/buildings/air-defense.webp');
+    this.load.image('elixirstorage', 'assets/buildings/elixir-storage.webp');
+    this.load.image('goldstorage',   'assets/buildings/gold-storage.webp');
+    this.load.image('mortar',        'assets/buildings/mortar.webp');
+    this.load.image('wizardtower',      'assets/buildings/wizard-tower.webp');
+    this.load.image('lootcart',         'assets/buildings/loot-cart.webp');
     this.load.image('stonepath',        'assets/buildings/stone-path.webp');
     this.load.image('gembox',           'assets/buildings/gem-box.webp');
     this.load.image('tree1',            'assets/buildings/tree1.webp');

@@ -296,8 +296,8 @@ function ChatPanel({ isOpen, onClose, onOpenModal, onBotReply }) {
   const [input, setInput]   = useState('');
   const inputRef            = useRef(null);
   const nextId              = useRef(2);
-  const kb                  = useRef(null);
-  if (!kb.current) kb.current = buildKnowledgeBase(onOpenModal);
+  const kb = useRef(null);
+  if (kb.current == null) kb.current = buildKnowledgeBase(onOpenModal);
 
   // Notification sound delegated to parent (App) so it respects global musicOn
   const playNotif = useCallback(() => {
@@ -499,13 +499,6 @@ function ChatPanel({ isOpen, onClose, onOpenModal, onBotReply }) {
       playNotif();
     }
   }, [onOpenModal, startContactFlow, cancelContactFlow, botMsg, playNotif]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(input);
-    }
-  }, [input, sendMessage]);
 
   if (!isOpen) return null;
 

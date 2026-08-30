@@ -8,4 +8,14 @@ export default defineConfig({
     host: true,
     allowedHosts: ['willpower-hush-regalia.ngrok-free.dev'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/phaser')) return 'phaser';
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'react-vendor';
+        },
+      },
+    },
+  },
 })

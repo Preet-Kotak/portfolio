@@ -109,7 +109,7 @@ function PhaserGame({ onBuildingClick, modalOpen, phaserGameRef }) {
       gameRef.current?.destroy(true);
       gameRef.current = null;
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     gameRef.current?.events.emit('setModalOpen', modalOpen);

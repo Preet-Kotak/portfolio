@@ -52,7 +52,7 @@ export default function useTutorial() {
     }, 1000); // 1 second after mount
 
     return () => clearTimeout(timerRef.current);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const advance = useCallback(() => {
     setStep(prev => {

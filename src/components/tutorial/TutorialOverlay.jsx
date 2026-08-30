@@ -328,7 +328,7 @@ function TutorialOverlay({ step, advance, skip, gameRef }) {
   // Activate each step: pan camera + start polling spotlight
   useEffect(() => {
     if (step === null || step === 0 || step >= STEPS.length) {
-      setSpotPos(null);
+      setSpotPos(null); // eslint-disable-line react-hooks/set-state-in-effect
       return;
     }
     const stepData = STEPS[step];

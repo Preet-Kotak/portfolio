@@ -14,6 +14,11 @@ const about = {
   linkedinUrl: 'https://www.linkedin.com/in/preet-kotak-8538b033a',
   resumePath:  '/assets/resume.pdf',
 
+  // ── Platform handles (used by TrophyRoomModal, App, ChatPanel) ─
+  cfHandle:    'Preet-Kotak',
+  lcUsername:  'Preet-Kotak',
+  ghUsername:  'Preet-Kotak',
+
   // ── Media ──────────────────────────────────────────────────────
   avatar:       'assets/profile.jpg',   // used by modal (legacy key)
   profilePhoto: '/assets/profile.jpg',  // used by Professional view
