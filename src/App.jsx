@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { initAnalytics, trackPageView, trackEvent } from './utils/analytics';
 import PhaserGame        from './components/phaser/PhaserGame';
 import LandingPage       from './components/LandingPage';
 import IntroScreen       from './components/IntroScreen';
@@ -32,6 +33,11 @@ const MODAL_MAP = {
 };
 
 function App() {
+  // ── Analytics ─────────────────────────────────────────────────
+  useEffect(() => {
+    initAnalytics();
+    trackPageView('/');
+  }, []);
   // ── Landing: which version is active ──────────────────────────
   // Persist mode across reloads. 'intro' is never saved — on reload
   // we go straight to 'game' to skip the cinematic.
@@ -98,11 +104,13 @@ function App() {
 
   const handleBuildingClick = useCallback((modalKey) => {
     playModalOpen();
+    trackEvent('Navigation', 'Building Clicked', modalKey);
     setActiveModal(MODAL_MAP[modalKey] ?? null);
   }, [playModalOpen]);
 
   const handleCloseModal = useCallback(() => {
     playModalClose();
+    trackEvent('Navigation', 'Modal Closed', activeModal ?? 'unknown');
     onModalClosed(activeModal);
     setActiveModal(null);
   }, [activeModal, onModalClosed, playModalClose]);
@@ -111,9 +119,11 @@ function App() {
   const handleChatOpenModal = useCallback((key) => {
     if (key === 'resume') {
       playModalOpen();
+      trackEvent('Navigation', 'Resume Opened', 'chat-command');
       setResumeOpen(true);
     } else {
       playModalOpen();
+      trackEvent('Navigation', 'Modal Opened', key);
       setActiveModal(key);
     }
   }, [playModalOpen]);
@@ -203,15 +213,15 @@ function App() {
           </button>
 
           <div id="tutorial-trophy-btn">
-            <TrophyButton cfRating={cfRating} onClick={() => { playModalOpen(); setActiveModal('trophy'); }} />
+            <TrophyButton cfRating={cfRating} onClick={() => { playModalOpen(); trackEvent('Navigation', 'Modal Opened', 'trophy'); setActiveModal('trophy'); }} />
           </div>
-          <CvButton onClick={() => { playModalOpen(); setResumeOpen(true); }} />
-          <MusicButton musicOn={musicOn} onToggle={toggleMusic} />
+          <CvButton onClick={() => { playModalOpen(); trackEvent('Navigation', 'Resume Opened', 'cv-button'); setResumeOpen(true); }} />
+          <MusicButton musicOn={musicOn} onToggle={() => { trackEvent('Engagement', 'Music Toggle', musicOn ? 'off' : 'on'); toggleMusic(); }} />
 
           {/* Chat toggle button — only show open button when closed */}
           {!chatOpen && (
             <div id="tutorial-chat-btn">
-              <ChatButton onClick={() => setChatOpen(true)} />
+              <ChatButton onClick={() => { trackEvent('Engagement', 'Chat Opened', 'chat-button'); setChatOpen(true); }} />
             </div>
           )}
 

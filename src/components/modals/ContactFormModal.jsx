@@ -15,6 +15,7 @@
 import { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import emailjs from '@emailjs/browser';
+import { trackEvent } from '../../utils/analytics';
 import Modal, { C, useMobile } from './Modal';
 
 /* ── labelled input/textarea field ───────────────────────────── */
@@ -120,12 +121,26 @@ function ContactFormModal({ isOpen, onClose }) {
 
     setStatus('sending');
     try {
+      const replyTemplateId = import.meta.env.VITE_EMAILJS_AUTOREPLY_TEMPLATE_ID;
+
       await emailjs.send(
         serviceId,
         templateId,
         { from_name: name.trim(), from_email: email.trim(), message: message.trim() },
         { publicKey },
       );
+
+      // Send auto-reply to the person who submitted the form (if template configured)
+      if (replyTemplateId) {
+        await emailjs.send(
+          serviceId,
+          replyTemplateId,
+          { from_name: name.trim(), from_email: email.trim(), message: message.trim() },
+          { publicKey },
+        );
+      }
+
+      trackEvent('Engagement', 'Contact Form Submitted', 'success');
       setStatus('success');
       setName(''); setEmail(''); setMessage(''); setErrors({});
     } catch (err) {

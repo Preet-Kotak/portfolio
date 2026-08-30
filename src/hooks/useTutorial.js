@@ -15,6 +15,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { trackEvent } from '../utils/analytics';
 
 const LS_KEY      = 'portfolio_tutorial_ts';
 const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 1 day
@@ -59,6 +60,7 @@ export default function useTutorial() {
       const next = prev + 1;
       if (next >= TOTAL_STEPS) {
         markTutorialSeen();
+        trackEvent('Tutorial', 'Completed', `step_${prev}`);
         return null;
       }
       return next;
@@ -66,8 +68,11 @@ export default function useTutorial() {
   }, []);
 
   const skip = useCallback(() => {
+    setStep(prev => {
+      trackEvent('Tutorial', 'Skipped', `step_${prev}`);
+      return null;
+    });
     markTutorialSeen();
-    setStep(null);
   }, []);
 
   // Called by App when a building modal closes — advances only if on the matching step
