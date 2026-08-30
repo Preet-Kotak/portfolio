@@ -116,3 +116,16 @@ canvas {
     top: 138px !important;  /* 74px + 52px + 12px gap */
   }
 }
+
+/* PRO button — bottom-right, ~1.75x standard HUD buttons */
+.hud-pro-btn {
+  width:  56px !important;   /* 32 * 1.75 */
+  height: 56px !important;
+}
+
+@media (min-width: 1024px) {
+  .hud-pro-btn {
+    width:  90px !important;   /* 52 * 1.75 ≈ 91 → 90 */
+    height: 90px !important;
+  }
+}

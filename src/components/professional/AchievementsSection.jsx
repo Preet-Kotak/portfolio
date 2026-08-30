@@ -14,6 +14,7 @@ const STYLES = `
     position: relative;
     padding: 10vh 6vw 120px;
     color: white;
+    overflow: clip;
   }
 
   .as-heading {

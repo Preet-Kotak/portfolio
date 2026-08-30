@@ -8,7 +8,7 @@ import HeroSection          from './HeroSection';
 import AboutSection         from './AboutSection';
 import ProjectsSection      from './ProjectsSection';
 import AchievementsSection  from './AchievementsSection';
-import WaveDivider          from './WaveDivider';
+import ContactSection       from './ContactSection';
 
 const CSS_VARS = `
   :root {
@@ -64,33 +64,8 @@ export default function ProfessionalPage({ onBack, onSwitchToGame }) {
         {/* 11.7 — Achievements */}
         <AchievementsSection onBack={onBack} />
 
-        {/* 11.8 placeholder — Contact */}
-        <section id="contact" style={{
-          minHeight: '40vh', background: 'var(--light-parch-grad)',
-          position: 'relative', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontFamily: '"Fira Code",monospace',
-          color: 'var(--dark-text)', fontSize: '16px', paddingBottom: '90px',
-        }}>
-          Contact — coming soon
-          <WaveDivider direction="to-dark" />
-        </section>
-
-        {/* Temp Enter the Village button */}
-        <div style={{
-          background: 'var(--dark-brown-grad)', padding: '40px', textAlign: 'center',
-        }}>
-          <button
-            onClick={onSwitchToGame}
-            aria-label="Switch to the interactive village experience"
-            style={{
-              fontFamily: '"Fira Code",monospace', color: 'var(--gold)',
-              border: '2px solid var(--gold)', background: 'transparent',
-              padding: '8px 20px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px',
-            }}
-          >
-            ⚔️ Enter the Village
-          </button>
-        </div>
+        {/* 11.8 + 11.10 — Contact + Footer */}
+        <ContactSection onBack={onBack} />
 
       </main>
     </div>
