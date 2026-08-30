@@ -3,11 +3,12 @@
  * Tasks completed: 11.2 (vars+waves) 11.3 (nav) 11.4 (hero) 11.5 (about)
  */
 import PropTypes from 'prop-types';
-import ProNav           from './ProNav';
-import HeroSection      from './HeroSection';
-import AboutSection     from './AboutSection';
-import ProjectsSection  from './ProjectsSection';
-import WaveDivider      from './WaveDivider';
+import ProNav               from './ProNav';
+import HeroSection          from './HeroSection';
+import AboutSection         from './AboutSection';
+import ProjectsSection      from './ProjectsSection';
+import AchievementsSection  from './AchievementsSection';
+import WaveDivider          from './WaveDivider';
 
 const CSS_VARS = `
   :root {
@@ -60,16 +61,8 @@ export default function ProfessionalPage({ onBack, onSwitchToGame }) {
         {/* 11.6 — Projects */}
         <ProjectsSection />
 
-        {/* 11.7 placeholder — Achievements */}
-        <section id="achievements" style={{
-          minHeight: '40vh', background: 'var(--dark-brown-grad)',
-          position: 'relative', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontFamily: '"Fira Code",monospace',
-          color: 'var(--gold-light)', fontSize: '16px', paddingBottom: '90px',
-        }}>
-          Achievements — coming soon
-          <WaveDivider direction="to-light" />
-        </section>
+        {/* 11.7 — Achievements */}
+        <AchievementsSection onBack={onBack} />
 
         {/* 11.8 placeholder — Contact */}
         <section id="contact" style={{
