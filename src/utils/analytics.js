@@ -6,7 +6,10 @@
  * If the variable is missing (local dev without .env) every call is a no-op,
  * so the rest of the app never has to guard against undefined.
  */
-import ReactGA from 'react-ga4';
+import ReactGA_module from 'react-ga4';
+// react-ga4's CJS build wraps the class under .default in production bundles.
+// Unwrap it so ReactGA.initialize always exists regardless of bundler behaviour.
+const ReactGA = ReactGA_module?.default ?? ReactGA_module;
 
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 

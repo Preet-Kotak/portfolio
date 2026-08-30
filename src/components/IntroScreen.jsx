@@ -10,8 +10,6 @@
  *
  * Font: Cormorant SC — elegant engraved serif, loads from Google Fonts.
  * Fallback: Georgia, Times New Roman.
- *
- * Sound hook: call your audioRef.current.play() inside the useEffect below (marked).
  */
 
 import { useEffect, useRef } from 'react';

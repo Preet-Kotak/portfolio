@@ -377,8 +377,6 @@ function ChatPanel({ isOpen, onClose, onOpenModal, onBotReply }) {
         setMessages(prev => [...prev, { id: typingId, role: 'bot', text: '📨 Sending…', time: getTime() }]);
 
         try {
-          const replyTemplateId = import.meta.env.VITE_EMAILJS_AUTOREPLY_TEMPLATE_ID;
-
           await emailjs.send(
             import.meta.env.VITE_EMAILJS_SERVICE_ID,
             import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
@@ -389,21 +387,6 @@ function ChatPanel({ isOpen, onClose, onOpenModal, onBotReply }) {
             },
             { publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY },
           );
-
-          // Auto-reply to sender
-          if (replyTemplateId) {
-            await emailjs.send(
-              import.meta.env.VITE_EMAILJS_SERVICE_ID,
-              replyTemplateId,
-              {
-                from_name:  contactData.current.name,
-                from_email: contactData.current.email,
-                message:    contactData.current.message,
-              },
-              { publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY },
-            );
-          }
-
           setMessages(prev => prev.map(m =>
             m.id === typingId
               ? { ...m, text: `✅ Message sent! I'll get back to you soon, ${contactData.current.name}.` }

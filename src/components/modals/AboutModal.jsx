@@ -22,7 +22,7 @@ function HexAvatar({ size = 80 }) {
         background: C.bgPanel,
       }}>
         <img
-          src={about.avatar}
+          src={about.profilePhoto}
           alt={about.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           onError={(e) => {

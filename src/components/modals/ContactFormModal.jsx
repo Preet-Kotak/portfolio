@@ -121,25 +121,12 @@ function ContactFormModal({ isOpen, onClose }) {
 
     setStatus('sending');
     try {
-      const replyTemplateId = import.meta.env.VITE_EMAILJS_AUTOREPLY_TEMPLATE_ID;
-
       await emailjs.send(
         serviceId,
         templateId,
         { from_name: name.trim(), from_email: email.trim(), message: message.trim() },
         { publicKey },
       );
-
-      // Send auto-reply to the person who submitted the form (if template configured)
-      if (replyTemplateId) {
-        await emailjs.send(
-          serviceId,
-          replyTemplateId,
-          { from_name: name.trim(), from_email: email.trim(), message: message.trim() },
-          { publicKey },
-        );
-      }
-
       trackEvent('Engagement', 'Contact Form Submitted', 'success');
       setStatus('success');
       setName(''); setEmail(''); setMessage(''); setErrors({});

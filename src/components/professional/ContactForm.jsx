@@ -193,25 +193,12 @@ export default function ContactForm() {
     setStatus('sending');
 
     try {
-      const replyTemplateId = import.meta.env.VITE_EMAILJS_AUTOREPLY_TEMPLATE_ID;
-
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         { from_name: form.name, from_email: form.email, reply_to: form.email, message: form.message },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
-
-      // Auto-reply to sender
-      if (replyTemplateId) {
-        await emailjs.send(
-          import.meta.env.VITE_EMAILJS_SERVICE_ID,
-          replyTemplateId,
-          { from_name: form.name, from_email: form.email, reply_to: form.email, message: form.message },
-          import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-        );
-      }
-
       setStatus('success');
       setForm({ name: '', email: '', message: '' });
     } catch (err) {

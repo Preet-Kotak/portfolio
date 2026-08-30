@@ -20,8 +20,7 @@ const about = {
   ghUsername:  'Preet-Kotak',
 
   // ── Media ──────────────────────────────────────────────────────
-  avatar:       'assets/profile.jpg',   // used by modal (legacy key)
-  profilePhoto: '/assets/profile.jpg',  // used by Professional view
+  profilePhoto: '/assets/profile.jpg',  // used by Professional view and About modal
 
   // ── Bio — paragraphs for the About section ─────────────────────
   bio: [

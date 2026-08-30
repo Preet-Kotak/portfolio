@@ -28,17 +28,6 @@ const achievements = [
     },
     placeholder: false,
   },
-  {
-    id:          'more-coming',
-    title:       'More incoming...',
-    subtitle:    'Stay tuned',
-    icon:        '⚔️',
-    description: 'Currently raiding. New trophies will be added here.',
-    color:       '#6878A8',
-    href:        null,
-    certificate: null,
-    placeholder: true,
-  },
 ];
 
 export default achievements;
