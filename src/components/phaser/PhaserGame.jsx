@@ -21,53 +21,10 @@ function PhaserGame({ onBuildingClick, modalOpen, phaserGameRef }) {
 
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
 
-    const cssW = getViewportWidth();
-    const cssH = Math.round(cssW * BG_H / BG_W);
-    // Physical pixel dimensions — this is what Phaser/WebGL uses for its viewport
-    const physW = Math.round(cssW * dpr);
-    const physH = Math.round(cssH * dpr);
+    let rafId         = null;
+    let resizeTimer   = null;
+    let cleanupCalled = false;
 
-    containerRef.current.style.height = `${cssH}px`;
-
-    gameRef.current = new Phaser.Game({
-      type:            Phaser.AUTO,
-      parent:          containerRef.current,
-      backgroundColor: '#4a5a10',
-      scene:           [VillageScene],
-      // Give Phaser the physical pixel size so WebGL viewport is native-res
-      width:  physW,
-      height: physH,
-      scale: {
-        mode:       Phaser.Scale.NONE,
-        autoCenter: Phaser.Scale.NO_CENTER,
-      },
-      // Store CSS dimensions before any scene runs so VillageScene.create() can read them
-      callbacks: {
-        preBoot: (game) => {
-          game.registry.set('cssWidth',  cssW);
-          game.registry.set('cssHeight', cssH);
-          game.registry.set('dpr',       dpr);
-        },
-      },
-      input: {
-        touch: { capture: false },
-      },
-      render: {
-        antialias:       true,
-        roundPixels:     true,
-        powerPreference: 'low-power',
-      },
-      fps: {
-        target:     60,
-        smoothStep: true,
-      },
-    });
-
-    // Expose game instance to parent via ref
-    if (phaserGameRef) phaserGameRef.current = gameRef.current;
-
-    // After Phaser creates the canvas, pin its CSS size to the logical (CSS) size.
-    // This makes the canvas physically large (crisp) but visually the right size.
     const applyCSSSize = (cW, cH) => {
       const canvas = containerRef.current?.querySelector('canvas');
       if (!canvas) return;
@@ -75,23 +32,15 @@ function PhaserGame({ onBuildingClick, modalOpen, phaserGameRef }) {
       canvas.style.height = `${cH}px`;
     };
 
-    gameRef.current.events.once('ready', () => applyCSSSize(cssW, cssH));
-
-    gameRef.current.events.on('buildingClicked', (buildingType) => {
-      onClickRef.current?.(buildingType);
-    });
-
-    let resizeTimer = null;
     const handleResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         if (!gameRef.current || !containerRef.current) return;
-        const nCssW = getViewportWidth();
-        const nCssH = Math.round(nCssW * BG_H / BG_W);
+        const nCssW  = getViewportWidth();
+        const nCssH  = Math.round(nCssW * BG_H / BG_W);
         const nPhysW = Math.round(nCssW * dpr);
         const nPhysH = Math.round(nCssH * dpr);
         containerRef.current.style.height = `${nCssH}px`;
-        // Resize Phaser at physical resolution, then re-pin CSS size
         gameRef.current.scale.resize(nPhysW, nPhysH);
         gameRef.current.registry.set('cssWidth',  nCssW);
         gameRef.current.registry.set('cssHeight', nCssH);
@@ -99,10 +48,73 @@ function PhaserGame({ onBuildingClick, modalOpen, phaserGameRef }) {
         gameRef.current.events.emit('canvasResized', nCssW, nCssH);
       }, 150);
     };
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
+
+    // Use a rAF so the browser has committed layout before we read viewport dims.
+    // Without this, iOS Safari (and some Android browsers) can return a stale
+    // clientWidth on first paint, causing buildings to render offset to the left
+    // — which only fixes itself after a reload when layout is already stable.
+    rafId = requestAnimationFrame(() => {
+      if (cleanupCalled || !containerRef.current) return;
+
+      const cssW  = getViewportWidth();
+      const cssH  = Math.round(cssW * BG_H / BG_W);
+      const physW = Math.round(cssW * dpr);
+      const physH = Math.round(cssH * dpr);
+
+      containerRef.current.style.height = `${cssH}px`;
+
+      gameRef.current = new Phaser.Game({
+        type:            Phaser.AUTO,
+        parent:          containerRef.current,
+        backgroundColor: '#4a5a10',
+        scene:           [VillageScene],
+        // Give Phaser the physical pixel size so WebGL viewport is native-res
+        width:  physW,
+        height: physH,
+        scale: {
+          mode:       Phaser.Scale.NONE,
+          autoCenter: Phaser.Scale.NO_CENTER,
+        },
+        // Store CSS dimensions before any scene runs so VillageScene.create() can read them
+        callbacks: {
+          preBoot: (game) => {
+            game.registry.set('cssWidth',  cssW);
+            game.registry.set('cssHeight', cssH);
+            game.registry.set('dpr',       dpr);
+          },
+        },
+        input: {
+          touch: { capture: false },
+        },
+        render: {
+          antialias:       true,
+          roundPixels:     true,
+          powerPreference: 'low-power',
+        },
+        fps: {
+          target:     60,
+          smoothStep: true,
+        },
+      });
+
+      // Expose game instance to parent via ref
+      if (phaserGameRef) phaserGameRef.current = gameRef.current;
+
+      // After Phaser creates the canvas, pin its CSS size to the logical (CSS) size.
+      // This makes the canvas physically large (crisp) but visually the right size.
+      gameRef.current.events.once('ready', () => applyCSSSize(cssW, cssH));
+
+      gameRef.current.events.on('buildingClicked', (buildingType) => {
+        onClickRef.current?.(buildingType);
+      });
+
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', handleResize);
+    });
 
     return () => {
+      cleanupCalled = true;
+      cancelAnimationFrame(rafId);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);

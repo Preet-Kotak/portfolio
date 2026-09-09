@@ -12,7 +12,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import about from '../../data/about';
-
 const NAV_LINKS = [
   { label: 'About',        href: '#about'        },
   { label: 'Projects',     href: '#projects'     },
@@ -95,6 +94,20 @@ const HEADER_STYLES = `
     white-space: nowrap;
   }
   .pro-villageBtn:hover { color: #fff; background: var(--gold); }
+
+  .pro-resumeBtn {
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 5px 12px;
+    border-radius: 10px;
+    background: transparent;
+    font-family: "Fira Code", monospace;
+    font-size: 14px;
+    text-decoration: none;
+    transition: color 250ms ease, background 250ms ease, border-color 250ms ease;
+    white-space: nowrap;
+  }
+  .pro-resumeBtn:hover { color: var(--coc-green); border-color: var(--coc-green); }
 
   .pro-menuIcon {
     display: none;
@@ -240,6 +253,15 @@ export default function ProNav({ onSwitchToGame }) {
               {label}
             </a>
           ))}
+          <a
+            href={about.resumePath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pro-resumeBtn"
+            aria-label="Open resume PDF"
+          >
+            📄 Resume
+          </a>
           <button className="pro-villageBtn" onClick={handleVillageClick}>
             ⚔️ Enter the Village
           </button>
@@ -255,6 +277,17 @@ export default function ProNav({ onSwitchToGame }) {
               {label}
             </a>
           ))}
+          <a
+            href={about.resumePath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pro-resumeBtn"
+            style={{ marginTop: 8, fontSize: 18, padding: '10px 24px' }}
+            onClick={closeMenu}
+            aria-label="Open resume PDF"
+          >
+            📄 Resume
+          </a>
           <button className="pro-villageBtn" onClick={handleVillageClick}>
             ⚔️ Enter the Village
           </button>
